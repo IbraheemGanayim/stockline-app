@@ -13,6 +13,7 @@ import { View, TouchableOpacity, StyleSheet, Platform, Text } from 'react-native
 import { LinearGradient } from 'expo-linear-gradient';
 
 import HomeScreen from '../screens/HomeScreen';
+import MarketScreen from '../screens/MarketScreen';
 import ItemDetailsScreen from '../screens/ItemDetailsScreen';
 import CreateItemScreen from '../screens/CreateItemScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -165,7 +166,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Market"
-        component={HomeScreen} // Using HomeScreen for now, can be replaced with dedicated MarketScreen
+        component={MarketScreen}
         options={{
           title: 'Market',
           headerTitle: 'Market Overview'

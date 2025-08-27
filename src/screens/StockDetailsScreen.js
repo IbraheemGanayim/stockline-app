@@ -74,12 +74,15 @@ const StockDetailsScreen = ({ route, navigation }) => {
   };
 
   const handleBuy = () => {
-    navigation.navigate('Transactions', {
-      prefillStock: {
-        symbol: stock.ticker || stock.symbol,
-        name: stock.companyName || stock.name,
-        price: currentPrice,
-        action: 'buy'
+    navigation.navigate('MainTabs', {
+      screen: 'Transactions',
+      params: {
+        stock: {
+          ticker: stock.ticker || stock.symbol,
+          companyName: stock.companyName || stock.name,
+          price: currentPrice,
+          color: stock.color || theme.colors.primary.main
+        }
       }
     });
   };

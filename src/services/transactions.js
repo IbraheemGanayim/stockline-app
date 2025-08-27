@@ -20,6 +20,26 @@ import { db } from './firebase';
 import { updatePortfolioFromTransaction } from './portfolio';
 
 /**
+ * Execute a trade transaction (unified function)
+ * @param {string} userId - User ID
+ * @param {Object} transactionData - Transaction details
+ * @returns {Promise<Object>} Result with success status
+ */
+export const executeTransaction = async (userId, transactionData) => {
+  try {
+    // Add the transaction to user's history
+    const result = await addTransaction(transactionData, userId);
+    return result;
+  } catch (error) {
+    console.error('Error executing transaction:', error);
+    return {
+      success: false,
+      error: 'Failed to execute transaction. Please try again.'
+    };
+  }
+};
+
+/**
  * Add a new transaction
  * @param {Object} transactionData - Transaction details
  * @param {string} userId - User ID

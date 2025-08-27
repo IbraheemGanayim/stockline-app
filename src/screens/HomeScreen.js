@@ -11,13 +11,92 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert
+  Alert,
+  Image,
+  Platform
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Screen, PortfolioCard, StockCard, SectionHeader } from '../components';
+import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal } from '../components';
 import { usePortfolio, useWatchlist } from '../hooks';
 import { getTrendingStocks } from '../services/watchlist';
 import { theme } from '../theme';
+
+/**
+ * Company icons mapping with multiple fallback options
+ */
+const COMPANY_ICONS = {
+  AAPL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/apple.com',
+    fallback: { type: 'icon', name: 'apple', library: 'FontAwesome5' },
+    color: '#000000',
+    backgroundColor: '#F5F5F7'
+  },
+  MSFT: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/microsoft.com',
+    fallback: { type: 'icon', name: 'microsoft', library: 'FontAwesome5' },
+    color: '#00A1F1',
+    backgroundColor: '#F3F2F1'
+  },
+  GOOGL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/google.com',
+    fallback: { type: 'icon', name: 'google', library: 'FontAwesome5' },
+    color: '#4285F4',
+    backgroundColor: '#F8F9FA'
+  },
+  AMZN: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/amazon.com',
+    fallback: { type: 'icon', name: 'amazon', library: 'FontAwesome5' },
+    color: '#FF9900',
+    backgroundColor: '#232F3E'
+  },
+  TSLA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/tesla.com',
+    fallback: { type: 'text', text: 'T', font: 'bold' },
+    color: '#CC0000',
+    backgroundColor: '#FFFFFF'
+  },
+  NVDA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/nvidia.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#76B900',
+    backgroundColor: '#000000'
+  },
+  NFLX: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/netflix.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#E50914',
+    backgroundColor: '#000000'
+  },
+  META: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/meta.com',
+    fallback: { type: 'icon', name: 'facebook', library: 'FontAwesome5' },
+    color: '#1877F2',
+    backgroundColor: '#F0F2F5'
+  },
+  DIS: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/disney.com',
+    fallback: { type: 'text', text: 'D', font: 'bold' },
+    color: '#003087',
+    backgroundColor: '#F0F0F0'
+  },
+  BABA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/alibaba.com',
+    fallback: { type: 'text', text: 'A', font: 'bold' },
+    color: '#FF6A00',
+    backgroundColor: '#FFFFFF'
+  }
+};
 
 /**
  * HomeScreen component displaying Stockline dashboard
@@ -28,6 +107,7 @@ const HomeScreen = ({ navigation }) => {
   const { portfolio, loading: portfolioLoading } = usePortfolio();
   const { watchlist, addStock: addToWatchlist, removeStock: removeFromWatchlist } = useWatchlist();
   const [trendingStocks, setTrendingStocks] = useState([]);
+  const [showStockSearchModal, setShowStockSearchModal] = useState(false);
 
   // Load trending stocks on component mount
   useEffect(() => {
@@ -66,27 +146,26 @@ const HomeScreen = ({ navigation }) => {
   };
 
   /**
-   * Add stock to watchlist
+   * Add stock to watchlist - opens stock search modal
    */
-  const handleAddToWatchlist = async () => {
-    // For demo purposes, add a popular stock
-    const newStock = {
-      ticker: 'AAPL',
-      companyName: 'Apple Inc.',
-      price: 150.20,
-      change: 2.50,
-      changePercent: 1.69
-    };
+  const handleAddToWatchlist = () => {
+    setShowStockSearchModal(true);
+  };
 
+  /**
+   * Handle stock selection from search modal
+   * @param {Object} stock - Selected stock to add to watchlist
+   */
+  const handleStockSelect = async (stock) => {
     try {
-      const result = await addToWatchlist(newStock);
+      const result = await addToWatchlist(stock);
       if (result.success) {
-        Alert.alert('Success', 'Stock added to watchlist');
+        Alert.alert('Success', `${stock.ticker} added to your watchlist!`);
       } else {
         Alert.alert('Error', result.error || 'Failed to add stock to watchlist');
       }
     } catch (error) {
-      console.error('Error adding to watchlist:', error);
+      console.error('Error adding stock to watchlist:', error);
       Alert.alert('Error', 'Failed to add stock to watchlist');
     }
   };
@@ -108,16 +187,120 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // Company Icon component with fallback support
+  const CompanyIcon = ({ ticker, size = 40 }) => {
+    const [imageError, setImageError] = useState(false);
+    const iconConfig = COMPANY_ICONS[ticker];
+    
+    if (!iconConfig || imageError) {
+      // Fallback to default icon
+      const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
+      
+      return (
+        <View style={[
+          styles.companyIcon,
+          { 
+            width: size, 
+            height: size,
+            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+          }
+        ]}>
+          {fallback.type === 'icon' ? (
+            fallback.library === 'FontAwesome5' ? (
+              <FontAwesome5 
+                name={fallback.name} 
+                size={size * 0.5} 
+                color={iconConfig?.color || theme.colors.primary.main} 
+              />
+            ) : (
+              <MaterialCommunityIcons 
+                name={fallback.name} 
+                size={size * 0.5} 
+                color={iconConfig?.color || theme.colors.primary.main} 
+              />
+            )
+          ) : (
+            <Text style={[
+              styles.companyIconText,
+              { 
+                fontSize: size * 0.4,
+                color: iconConfig?.color || theme.colors.primary.main,
+                fontWeight: fallback.font === 'bold' ? '700' : '600'
+              }
+            ]}>
+              {fallback.text || ticker[0]}
+            </Text>
+          )}
+        </View>
+      );
+    }
+
+    // Try to load company logo image
+    return (
+      <View style={[
+        styles.companyIcon,
+        { 
+          width: size, 
+          height: size,
+          backgroundColor: iconConfig.backgroundColor 
+        }
+      ]}>
+        <Image
+          source={{ uri: iconConfig.source }}
+          style={[styles.companyIconImage, { width: size * 0.7, height: size * 0.7 }]}
+          onError={() => setImageError(true)}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  };
+
   return (
     <Screen padding={false} style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Portfolio Value Card */}
-        <PortfolioCard 
-          totalValue={portfolio.totalValue}
-          dailyChange={portfolio.dailyChangePercent}
-          gainAmount={portfolio.gainAmount}
-          lossAmount={portfolio.lossAmount}
-        />
+        {/* Portfolio Summary Card */}
+        <View style={styles.portfolioSummaryContainer}>
+          <PortfolioCard 
+            totalValue={portfolio.totalValue}
+            dailyChange={portfolio.dailyChangePercent}
+            gainAmount={portfolio.gainAmount}
+            lossAmount={portfolio.lossAmount}
+            onPress={handleViewPortfolio}
+          />
+          
+          {/* Quick Actions */}
+          <View style={styles.quickActionsContainer}>
+            <TouchableOpacity 
+              style={styles.quickActionButton}
+              onPress={() => navigation.navigate('Transactions')}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="swap-horizontal" size={24} color={theme.colors.primary.main} />
+              </View>
+              <Text style={styles.quickActionText}>Trade</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.quickActionButton}
+              onPress={() => navigation.navigate('Market')}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="trending-up" size={24} color={theme.colors.primary.main} />
+              </View>
+              <Text style={styles.quickActionText}>Market</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.quickActionButton}
+              onPress={() => navigation.navigate('Portfolio')}
+            >
+              <View style={styles.quickActionIcon}>
+                <Ionicons name="pie-chart" size={24} color={theme.colors.primary.main} />
+              </View>
+              <Text style={styles.quickActionText}>Portfolio</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         
         {/* Trending Stocks Section */}
         <SectionHeader 
@@ -127,18 +310,23 @@ const HomeScreen = ({ navigation }) => {
         />
         
         <View style={styles.trendingContainer}>
-          {trendingStocks.map((stock, index) => (
-            <StockCard
-              key={index}
-              ticker={stock.ticker}
-              companyName={stock.companyName}
-              price={stock.price}
-              change={stock.change}
-              changePercent={stock.changePercent}
-              onPress={() => handleStockPress(stock)}
-              showChart={true}
-            />
-          ))}
+          {trendingStocks.map((stock, index) => {
+            const iconConfig = COMPANY_ICONS[stock.ticker];
+            return (
+              <StockCard
+                key={index}
+                ticker={stock.ticker}
+                companyName={stock.companyName}
+                price={stock.price}
+                change={stock.change}
+                changePercent={stock.changePercent}
+                onPress={() => handleStockPress(stock)}
+                showChart={true}
+                customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
+                iconBackgroundColor={iconConfig?.backgroundColor}
+              />
+            );
+          })}
         </View>
         
         {/* Watchlist Section */}
@@ -153,22 +341,27 @@ const HomeScreen = ({ navigation }) => {
         </View>
         
         <View style={styles.wishlistContainer}>
-          {watchlist.map((stock, index) => (
-            <TouchableOpacity 
-              key={stock.id || index}
-              onLongPress={() => handleRemoveFromWatchlist(stock.ticker)}
-            >
-              <StockCard
-                ticker={stock.ticker}
-                companyName={stock.companyName}
-                price={stock.price}
-                change={stock.change}
-                changePercent={stock.changePercent}
-                onPress={() => handleStockPress(stock)}
-                showChart={true}
-              />
-            </TouchableOpacity>
-          ))}
+          {watchlist.map((stock, index) => {
+            const iconConfig = COMPANY_ICONS[stock.ticker];
+            return (
+              <TouchableOpacity 
+                key={stock.id || index}
+                onLongPress={() => handleRemoveFromWatchlist(stock.ticker)}
+              >
+                <StockCard
+                  ticker={stock.ticker}
+                  companyName={stock.companyName}
+                  price={stock.price}
+                  change={stock.change}
+                  changePercent={stock.changePercent}
+                  onPress={() => handleStockPress(stock)}
+                  showChart={true}
+                  customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
+                  iconBackgroundColor={iconConfig?.backgroundColor}
+                />
+              </TouchableOpacity>
+            );
+          })}
           
           {watchlist.length === 0 && (
             <View style={styles.emptyWatchlist}>
@@ -178,6 +371,14 @@ const HomeScreen = ({ navigation }) => {
           )}
         </View>
       </ScrollView>
+      
+      {/* Stock Search Modal */}
+      <StockSearchModal
+        visible={showStockSearchModal}
+        onClose={() => setShowStockSearchModal(false)}
+        onSelectStock={handleStockSelect}
+        existingWatchlist={watchlist}
+      />
     </Screen>
   );
 };
@@ -185,6 +386,34 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA',
+  },
+  portfolioSummaryContainer: {
+    backgroundColor: theme.colors.background.primary,
+    paddingBottom: 16,
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    justifyContent: 'space-around',
+  },
+  quickActionButton: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary.main + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  quickActionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
   },
   sectionHeader: {
     marginTop: 8,
@@ -243,6 +472,29 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: theme.colors.text.secondary,
+  },
+  companyIcon: {
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  companyIconImage: {
+    borderRadius: 6,
+  },
+  companyIconText: {
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

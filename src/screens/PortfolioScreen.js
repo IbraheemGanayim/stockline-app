@@ -15,17 +15,45 @@ import {
   TouchableOpacity,
   RefreshControl,
   Animated,
-  Platform
+  Platform,
+  Image
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Screen } from '../components';
 import { usePortfolio } from '../hooks';
 import { theme } from '../theme';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+/**
+ * Company icons mapping with multiple fallback options
+ */
+const COMPANY_ICONS = {
+  AAPL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/apple.com',
+    fallback: { type: 'icon', name: 'apple', library: 'FontAwesome5' },
+    color: '#000000',
+    backgroundColor: '#F5F5F7'
+  },
+  NFLX: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/netflix.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#E50914',
+    backgroundColor: '#000000'
+  },
+  TSLA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/tesla.com',
+    fallback: { type: 'text', text: 'T', font: 'bold' },
+    color: '#CC0000',
+    backgroundColor: '#FFFFFF'
+  }
+};
 
 const PortfolioScreen = ({ navigation }) => {
   const { portfolio, holdings, loading, error, refreshPortfolio } = usePortfolio();
@@ -193,6 +221,74 @@ const PortfolioScreen = ({ navigation }) => {
     );
   };
 
+  // Company Icon component with fallback support
+  const CompanyIcon = ({ ticker, size = 48 }) => {
+    const [imageError, setImageError] = useState(false);
+    const iconConfig = COMPANY_ICONS[ticker];
+    
+    if (!iconConfig || imageError) {
+      // Fallback to default icon
+      const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
+      
+      return (
+        <View style={[
+          styles.modernStockLogo,
+          { 
+            width: size, 
+            height: size,
+            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+          }
+        ]}>
+          {fallback.type === 'icon' ? (
+            fallback.library === 'FontAwesome5' ? (
+              <FontAwesome5 
+                name={fallback.name} 
+                size={size * 0.5} 
+                color={iconConfig?.color || theme.colors.primary.main} 
+              />
+            ) : (
+              <MaterialCommunityIcons 
+                name={fallback.name} 
+                size={size * 0.5} 
+                color={iconConfig?.color || theme.colors.primary.main} 
+              />
+            )
+          ) : (
+            <Text style={[
+              styles.portfolioStockLogoText,
+              { 
+                fontSize: size * 0.4,
+                color: iconConfig?.color || theme.colors.primary.main,
+                fontWeight: fallback.font === 'bold' ? '700' : '600'
+              }
+            ]}>
+              {fallback.text || ticker[0]}
+            </Text>
+          )}
+        </View>
+      );
+    }
+
+    // Try to load company logo image
+    return (
+      <View style={[
+        styles.modernStockLogo,
+        { 
+          width: size, 
+          height: size,
+          backgroundColor: iconConfig.backgroundColor 
+        }
+      ]}>
+        <Image
+          source={{ uri: iconConfig.source }}
+          style={[styles.portfolioStockLogoImage, { width: size * 0.7, height: size * 0.7 }]}
+          onError={() => setImageError(true)}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  };
+
   // Real-time stock data with sparklines
   const modernStocks = [
     {
@@ -203,7 +299,6 @@ const PortfolioScreen = ({ navigation }) => {
       change: 1.13 + (Math.random() - 0.5) * 0.5,
       changePercent: 1.29 + (Math.random() - 0.5) * 0.3,
       sparklineData: Array.from({ length: 20 }, (_, i) => 88 + Math.sin(i * 0.3) * 5 + Math.random() * 2),
-      logo: '🔴',
       color: '#E50914'
     },
     {
@@ -214,7 +309,6 @@ const PortfolioScreen = ({ navigation }) => {
       change: 1.14 + (Math.random() - 0.5) * 0.6,
       changePercent: 0.81 + (Math.random() - 0.5) * 0.4,
       sparklineData: Array.from({ length: 20 }, (_, i) => 140 + Math.cos(i * 0.2) * 7 + Math.random() * 2),
-      logo: '🍎',
       color: '#000000'
     },
     {
@@ -225,7 +319,6 @@ const PortfolioScreen = ({ navigation }) => {
       change: 2.85 + (Math.random() - 0.5) * 1,
       changePercent: 1.23 + (Math.random() - 0.5) * 0.5,
       sparklineData: Array.from({ length: 20 }, (_, i) => 230 + Math.sin(i * 0.4) * 10 + Math.random() * 3),
-      logo: '⚡',
       color: '#CC0000'
     }
   ];
@@ -437,12 +530,7 @@ const PortfolioScreen = ({ navigation }) => {
               activeOpacity={0.7}
             >
               <View style={styles.stockLeft}>
-                <LinearGradient
-                  colors={[stock.color, `${stock.color}CC`]}
-                  style={styles.modernStockLogo}
-                >
-                  <Text style={styles.stockLogoEmoji}>{stock.logo}</Text>
-                </LinearGradient>
+                <CompanyIcon ticker={stock.ticker} size={48} />
                 <View style={styles.stockInfo}>
                   <Text style={styles.stockTicker}>{stock.ticker}</Text>
                   <Text style={styles.stockName}>{stock.companyName}</Text>
@@ -729,6 +817,13 @@ const styles = StyleSheet.create({
   },
   stockLogoEmoji: {
     fontSize: 20,
+  },
+  portfolioStockLogoImage: {
+    borderRadius: 8,
+  },
+  portfolioStockLogoText: {
+    fontWeight: '600',
+    textAlign: 'center',
   },
   stockInfo: {
     flex: 1,

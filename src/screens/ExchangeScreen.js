@@ -1,10 +1,10 @@
 /**
  * Exchange Screen - Modern trading interface for buying/selling stocks
- * Matches the Figma design with buy/sell tabs, stock inputs, numpad, and swap functionality
+ * Integrated with Firestore for real portfolio updates and transaction recording
  * @author Ibraheem Ganayim
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,129 +14,221 @@ import {
   Alert,
   Vibration,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PrimaryButton } from '../components';
+import * as Haptics from 'expo-haptics';
+import { PrimaryButton, SuccessAnimation } from '../components';
+import { usePortfolio, useAuthUser, useTransactions } from '../hooks';
+import { executeTransaction } from '../services/transactions';
 import { theme } from '../theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const ExchangeScreen = ({ navigation }) => {
+const ExchangeScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthUser();
+  const { portfolio, refreshPortfolio } = usePortfolio();
+  const { addTransaction } = useTransactions();
+  
+  // Get stock from route params if navigated from stock details
+  const selectedStock = route?.params?.stock;
+  
   const [activeTab, setActiveTab] = useState('buy'); // 'buy' or 'sell'
-  const [fromStock, setFromStock] = useState({
-    symbol: 'NFLX',
-    name: 'Netflix',
-    amount: '126',
-    icon: 'N',
-    color: '#E50914'
-  });
-  const [toStock, setToStock] = useState({
-    symbol: 'MSFT',
-    name: 'Microsoft',
-    amount: '56.01',
-    icon: 'M',
-    color: '#00A1F1'
-  });
-  const [activeField, setActiveField] = useState('from'); // 'from' or 'to'
+  const [selectedStockData, setSelectedStockData] = useState(
+    selectedStock || {
+      ticker: 'AAPL',
+      companyName: 'Apple Inc.',
+      price: 175.84,
+      logo: '🍎',
+      color: '#000000'
+    }
+  );
+  const [amount, setAmount] = useState('0');
+  const [shares, setShares] = useState('1');
+  const [activeField, setActiveField] = useState('amount'); // 'amount' or 'shares'
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     Vibration.vibrate(50);
   };
 
-  const handleSwap = () => {
-    setFromStock(toStock);
-    setToStock(fromStock);
-    Vibration.vibrate(100);
+  const handleFieldSwap = () => {
+    setActiveField(activeField === 'amount' ? 'shares' : 'amount');
+    Vibration.vibrate(50);
   };
 
   const handleNumberInput = (number) => {
-    const currentStock = activeField === 'from' ? fromStock : toStock;
-    const setter = activeField === 'from' ? setFromStock : setToStock;
+    const currentValue = activeField === 'amount' ? amount : shares;
+    const setter = activeField === 'amount' ? setAmount : setShares;
     
-    let newAmount = currentStock.amount === '0' ? number : currentStock.amount + number;
+    let newValue = currentValue === '0' ? number : currentValue + number;
     
     // Prevent multiple decimal points
-    if (number === '.' && currentStock.amount.includes('.')) return;
+    if (number === '.' && currentValue.includes('.')) return;
     
-    setter(prev => ({
-      ...prev,
-      amount: newAmount
-    }));
-    
+    setter(newValue);
     Vibration.vibrate(25);
   };
 
   const handleDelete = () => {
-    const currentStock = activeField === 'from' ? fromStock : toStock;
-    const setter = activeField === 'from' ? setFromStock : setToStock;
+    const currentValue = activeField === 'amount' ? amount : shares;
+    const setter = activeField === 'amount' ? setAmount : setShares;
     
-    let newAmount = currentStock.amount.slice(0, -1);
-    if (newAmount === '' || newAmount === '0') newAmount = '0';
+    let newValue = currentValue.slice(0, -1);
+    if (newValue === '' || newValue === '0') newValue = '0';
     
-    setter(prev => ({
-      ...prev,
-      amount: newAmount
-    }));
-    
+    setter(newValue);
     Vibration.vibrate(25);
   };
 
   const handleClear = () => {
-    const setter = activeField === 'from' ? setFromStock : setToStock;
-    setter(prev => ({
-      ...prev,
-      amount: '0'
-    }));
+    const setter = activeField === 'amount' ? setAmount : setShares;
+    setter('0');
     Vibration.vibrate(50);
   };
 
-  const handleExecuteTrade = () => {
+  /**
+   * Calculate total value based on shares and price
+   */
+  const calculateTotal = useCallback(() => {
+    const numShares = parseFloat(shares) || 0;
+    const stockPrice = selectedStockData.price || 0;
+    return (numShares * stockPrice).toFixed(2);
+  }, [shares, selectedStockData.price]);
+
+  /**
+   * Update amount when shares change
+   */
+  useEffect(() => {
+    if (activeField === 'shares') {
+      setAmount(calculateTotal());
+    }
+  }, [shares, selectedStockData.price, activeField, calculateTotal]);
+
+  /**
+   * Update shares when amount changes
+   */
+  useEffect(() => {
+    if (activeField === 'amount') {
+      const numAmount = parseFloat(amount) || 0;
+      const stockPrice = selectedStockData.price || 1;
+      const calculatedShares = (numAmount / stockPrice).toFixed(4);
+      setShares(calculatedShares);
+    }
+  }, [amount, selectedStockData.price, activeField]);
+
+  /**
+   * Execute buy/sell trade with Firestore integration
+   */
+  const handleExecuteTrade = async () => {
+    if (!user?.uid) {
+      Alert.alert('Error', 'Please log in to trade stocks.');
+      return;
+    }
+
     const action = activeTab === 'buy' ? 'Buy' : 'Sell';
-    const amount = parseFloat(fromStock.amount);
+    const tradeAmount = parseFloat(amount);
+    const tradeShares = parseFloat(shares);
     
-    if (amount <= 0) {
+    if (tradeAmount <= 0 || tradeShares <= 0) {
       Alert.alert('Invalid Amount', 'Please enter a valid amount to trade.');
       return;
     }
 
+    // Validation for sell orders
+    if (activeTab === 'sell') {
+      // In a real app, you'd check if user has enough shares
+      // For demo purposes, we'll allow it
+    }
+
     Alert.alert(
       'Confirm Trade',
-      `${action} ${fromStock.symbol} for $${fromStock.amount}?`,
+      `${action} ${tradeShares} shares of ${selectedStockData.ticker} for $${tradeAmount}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Confirm',
           style: 'default',
-          onPress: () => {
-            Alert.alert('Success', `${action} order placed successfully!`);
-            // Here you would integrate with your trading API
+          onPress: async () => {
+            setLoading(true);
+            
+            try {
+              // Haptic feedback
+              await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              
+              // Create transaction data
+              const transactionData = {
+                type: activeTab,
+                ticker: selectedStockData.ticker,
+                companyName: selectedStockData.companyName,
+                shares: tradeShares,
+                price: selectedStockData.price,
+                total: tradeAmount,
+                timestamp: new Date(),
+                status: 'completed'
+              };
+
+              // Execute transaction
+              const result = await executeTransaction(user.uid, transactionData);
+              
+              if (result.success) {
+                // Add to transaction history
+                await addTransaction(transactionData);
+                
+                // Refresh portfolio
+                await refreshPortfolio();
+                
+                // Show success animation
+                setShowSuccess(true);
+                
+                // Reset form
+                setAmount('0');
+                setShares('1');
+                
+                // Hide success animation after 2 seconds
+                setTimeout(() => {
+                  setShowSuccess(false);
+                  navigation.goBack();
+                }, 2000);
+                
+              } else {
+                Alert.alert('Error', result.error || 'Failed to execute trade. Please try again.');
+              }
+            } catch (error) {
+              console.error('Trade execution error:', error);
+              Alert.alert('Error', 'Failed to execute trade. Please try again.');
+            } finally {
+              setLoading(false);
+            }
           }
         }
       ]
     );
   };
 
-  const StockInput = ({ stock, isActive, onPress, label }) => (
+  const TradingInput = ({ label, value, isActive, onPress }) => (
     <Pressable
       style={[styles.stockInput, isActive && styles.stockInputActive]}
       onPress={onPress}
     >
       <View style={styles.stockLeft}>
-        <Text style={styles.amountText}>${stock.amount}</Text>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <Text style={styles.amountText}>
+          {label === 'Amount' ? `$${value}` : `${value} shares`}
+        </Text>
       </View>
       <View style={styles.stockRight}>
-        <View style={[styles.stockIcon, { backgroundColor: stock.color }]}>
-          <Text style={styles.stockIconText}>{stock.icon}</Text>
+        <View style={[styles.stockIcon, { backgroundColor: selectedStockData.color || theme.colors.primary.main }]}>
+          <Text style={styles.stockLogoEmoji}>{selectedStockData.ticker?.[0] || 'S'}</Text>
         </View>
         <View style={styles.stockInfo}>
-          <Text style={styles.stockSymbol}>{stock.symbol}</Text>
-          <TouchableOpacity style={styles.dropdownButton}>
-            <Ionicons name="chevron-down" size={16} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
+          <Text style={styles.stockSymbol}>{selectedStockData.ticker}</Text>
+          <Text style={styles.stockPrice}>${selectedStockData.price?.toFixed(2)}</Text>
         </View>
       </View>
     </Pressable>
@@ -196,17 +288,17 @@ const ExchangeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Stock Inputs */}
+        {/* Trading Inputs */}
         <View style={styles.inputsContainer}>
-          <StockInput
-            stock={fromStock}
-            isActive={activeField === 'from'}
-            onPress={() => setActiveField('from')}
-            label="From"
+          <TradingInput
+            label="Amount"
+            value={amount}
+            isActive={activeField === 'amount'}
+            onPress={() => setActiveField('amount')}
           />
 
           {/* Swap Button */}
-          <TouchableOpacity style={styles.swapButton} onPress={handleSwap}>
+          <TouchableOpacity style={styles.swapButton} onPress={handleFieldSwap}>
             <LinearGradient
               colors={[theme.colors.primary.light, theme.colors.primary.main]}
               style={styles.swapButtonGradient}
@@ -215,11 +307,11 @@ const ExchangeScreen = ({ navigation }) => {
             </LinearGradient>
           </TouchableOpacity>
 
-          <StockInput
-            stock={toStock}
-            isActive={activeField === 'to'}
-            onPress={() => setActiveField('to')}
-            label="To"
+          <TradingInput
+            label="Shares"
+            value={shares}
+            isActive={activeField === 'shares'}
+            onPress={() => setActiveField('shares')}
           />
         </View>
 
@@ -255,12 +347,33 @@ const ExchangeScreen = ({ navigation }) => {
           bottom: 0
         }]}>
           <PrimaryButton
-            title={`${activeTab === 'buy' ? 'Buy' : 'Sell'} ${fromStock.symbol}`}
+            title={loading ? 'Processing...' : `${activeTab === 'buy' ? 'Buy' : 'Sell'} ${selectedStockData.ticker}`}
             onPress={handleExecuteTrade}
             fullWidth
             style={styles.actionButton}
+            disabled={loading}
           />
         </View>
+
+        {/* Success Animation Overlay */}
+        {showSuccess && (
+          <View style={styles.successOverlay}>
+            <SuccessAnimation 
+              message={`${activeTab === 'buy' ? 'Purchase' : 'Sale'} Successful!`}
+              subMessage={`${shares} shares of ${selectedStockData.ticker}`}
+            />
+          </View>
+        )}
+
+        {/* Loading Overlay */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary.main} />
+              <Text style={styles.loadingText}>Processing trade...</Text>
+            </View>
+          </View>
+        )}
     </View>
   );
 };
@@ -419,9 +532,23 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
   },
+  stockLogoEmoji: {
+    fontSize: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.text.secondary,
+    marginBottom: 4,
+  },
+  stockPrice: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    marginTop: 2,
+  },
   stockInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   stockSymbol: {
     fontSize: 18,
@@ -526,6 +653,48 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  successOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 32,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: theme.colors.text.primary,
+    marginTop: 16,
   },
 });
 
