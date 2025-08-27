@@ -19,6 +19,8 @@ import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import PortfolioScreen from '../screens/PortfolioScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
+import ExchangeScreen from '../screens/ExchangeScreen';
+import StockDetailsScreen from '../screens/StockDetailsScreen';
 import { theme } from '../theme';
 
 const Stack = createStackNavigator();
@@ -131,10 +133,11 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Transactions"
-        component={TransactionsScreen}
+        component={ExchangeScreen}
         options={{
           title: 'Trade',
-          headerTitle: 'Quick Trade',
+          headerTitle: 'Exchange',
+          headerShown: false,
           tabBarButton: (props) => (
             <View style={styles.fabWrapper}>
               <TouchableOpacity
@@ -230,6 +233,24 @@ const AppStack = () => {
         component={SettingsScreen}
         options={{
           title: 'Settings',
+          presentation: 'card'
+        }}
+      />
+      
+      <Stack.Screen
+        name="TransactionHistory"
+        component={TransactionsScreen}
+        options={{
+          title: 'Transaction History',
+          presentation: 'card'
+        }}
+      />
+      
+      <Stack.Screen
+        name="StockDetails"
+        component={StockDetailsScreen}
+        options={{
+          headerShown: false,
           presentation: 'card'
         }}
       />

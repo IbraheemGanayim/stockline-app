@@ -13,3 +13,5 @@ export { default as ProfileScreen } from './ProfileScreen';
 export { default as SettingsScreen } from './SettingsScreen';
 export { default as PortfolioScreen } from './PortfolioScreen';
 export { default as TransactionsScreen } from './TransactionsScreen';
+export { default as ExchangeScreen } from './ExchangeScreen';
+export { default as StockDetailsScreen } from './StockDetailsScreen';
