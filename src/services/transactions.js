@@ -27,16 +27,15 @@ import { updatePortfolioFromTransaction } from './portfolio';
  */
 export const addTransaction = async (transactionData, userId) => {
   try {
-    const transactionsRef = collection(db, 'transactions');
+    const userTransactionsRef = collection(db, 'transactions', userId, 'userTransactions');
     const newTransaction = {
       ...transactionData,
-      userId,
       date: serverTimestamp(),
       createdAt: serverTimestamp()
     };
 
     // Add transaction to Firestore
-    const docRef = await addDoc(transactionsRef, newTransaction);
+    const docRef = await addDoc(userTransactionsRef, newTransaction);
     
     // Update portfolio based on transaction
     const portfolioResult = await updatePortfolioFromTransaction(userId, transactionData);
@@ -95,10 +94,9 @@ export const getUserTransactions = async (userId, limitCount = 50) => {
   }
   
   try {
-    const transactionsRef = collection(db, 'transactions');
+    const userTransactionsRef = collection(db, 'transactions', userId, 'userTransactions');
     const q = query(
-      transactionsRef,
-      where('userId', '==', userId),
+      userTransactionsRef,
       orderBy('createdAt', 'desc'),
       limit(limitCount)
     );
@@ -180,10 +178,9 @@ export const subscribeToUserTransactions = (userId, callback, limitCount = 50) =
   }
   
   try {
-    const transactionsRef = collection(db, 'transactions');
+    const userTransactionsRef = collection(db, 'transactions', userId, 'userTransactions');
     const q = query(
-      transactionsRef,
-      where('userId', '==', userId),
+      userTransactionsRef,
       orderBy('createdAt', 'desc'),
       limit(limitCount)
     );
@@ -218,10 +215,9 @@ export const subscribeToUserTransactions = (userId, callback, limitCount = 50) =
  */
 export const getStockTransactions = async (userId, ticker) => {
   try {
-    const transactionsRef = collection(db, 'transactions');
+    const userTransactionsRef = collection(db, 'transactions', userId, 'userTransactions');
     const q = query(
-      transactionsRef,
-      where('userId', '==', userId),
+      userTransactionsRef,
       where('ticker', '==', ticker),
       orderBy('createdAt', 'desc')
     );

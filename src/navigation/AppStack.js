@@ -8,6 +8,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import HomeScreen from '../screens/HomeScreen';
 import ItemDetailsScreen from '../screens/ItemDetailsScreen';
@@ -25,6 +26,8 @@ const Tab = createBottomTabNavigator();
  * Bottom Tab Navigator for main app screens
  */
 const TabNavigator = () => {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -58,8 +61,8 @@ const TabNavigator = () => {
           borderTopColor: '#E5E7EB',
           borderTopWidth: 1,
           paddingTop: 8,
-          paddingBottom: 8,
-          height: 64
+          paddingBottom: Math.max(insets.bottom, 8), // Dynamic safe area handling
+          height: 64 + Math.max(insets.bottom, 8) - 8 // Dynamic height adjustment
         },
         tabBarLabelStyle: {
           fontSize: 12,
