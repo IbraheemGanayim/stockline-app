@@ -407,18 +407,19 @@ const MarketScreen = ({ navigation }) => {
   );
 
   return (
-    <Screen padding={false} style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.colors.primary.main}
-            colors={[theme.colors.primary.main]}
-          />
-        }
-      >
+    <Screen 
+      padding={false} 
+      scrollable={true}
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.colors.primary.main}
+          colors={[theme.colors.primary.main]}
+        />
+      }
+    >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
@@ -520,9 +521,6 @@ const MarketScreen = ({ navigation }) => {
           )}
         </View>
 
-        {/* Bottom spacing for tab bar */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
     </Screen>
   );
 };
@@ -733,9 +731,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 32,
   },
-  bottomSpacing: {
-    height: 120,
-  },
+
 });
 
 export default MarketScreen;

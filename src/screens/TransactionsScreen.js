@@ -152,8 +152,7 @@ const TransactionsScreen = ({ navigation }) => {
   }
 
   return (
-    <Screen padding={false}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <Screen padding={false} scrollable={true}>
         <View style={styles.header}>
           <SectionHeader 
             title="Recent Transactions" 
@@ -178,7 +177,6 @@ const TransactionsScreen = ({ navigation }) => {
             </Text>
           </View>
         )}
-      </ScrollView>
 
       {/* Add Transaction Modal */}
       <Modal

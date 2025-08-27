@@ -256,9 +256,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <Screen padding={false} style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Portfolio Summary Card */}
+    <Screen padding={false} scrollable={true} style={styles.container}>
+      {/* Portfolio Summary Card */}
         <View style={styles.portfolioSummaryContainer}>
           <PortfolioCard 
             totalValue={portfolio.totalValue}
@@ -370,7 +369,6 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-      </ScrollView>
       
       {/* Stock Search Modal */}
       <StockSearchModal

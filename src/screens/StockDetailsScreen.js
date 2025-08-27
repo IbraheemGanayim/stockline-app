@@ -198,7 +198,11 @@ const StockDetailsScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
         {/* Stock Logo */}
         <View style={styles.logoContainer}>
           <StockLogo symbol={stock.ticker || stock.symbol || 'AMZN'} />
