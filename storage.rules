@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Storage Security Rules for YallaBit
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Images in items folder - authenticated users can upload, anyone can read
+    match /items/{userId}/{imageFile} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Images in users folder - user can only access their own files
+    match /users/{userId}/{imageFile} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
