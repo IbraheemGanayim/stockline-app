@@ -199,3 +199,9 @@ eas.json
 
 # Sentry
 .sentryclirc
+
+# Project-specific files to ignore
+instructions.md
+*.md.backup
+.env*
+config/
