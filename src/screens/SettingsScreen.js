@@ -357,14 +357,12 @@ const SettingsScreen = ({ navigation }) => {
   );
 
   return (
-    <Screen padding={false}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <Screen padding={false} scrollable={true} style={styles.container}>
         <View style={styles.content}>
           {renderProfileSection()}
           {renderAccountSection()}
           {renderAppInfoSection()}
         </View>
-      </ScrollView>
     </Screen>
   );
 };

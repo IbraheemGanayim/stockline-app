@@ -20,6 +20,8 @@ import { theme } from '../theme';
  * @param {Object} props.contentContainerStyle - Additional styles for scroll content (when scrollable)
  * @param {boolean} props.keyboardAvoiding - Enable keyboard avoiding behavior (default: true)
  * @param {string} props.statusBarStyle - Status bar style ('light-content' or 'dark-content')
+ * @param {boolean} props.hasBottomTabs - Whether the screen has bottom tabs (default: true)
+ * @param {number} props.bottomTabHeight - Height of bottom tabs for padding calculation (default: 100)
  */
 const Screen = ({
   children,
@@ -30,12 +32,15 @@ const Screen = ({
   contentContainerStyle,
   keyboardAvoiding = true,
   statusBarStyle = 'dark-content',
+  hasBottomTabs = true,
+  bottomTabHeight = 100,
   ...props
 }) => {
   const containerStyle = [
     styles.container,
     { backgroundColor },
     padding && styles.padding,
+    hasBottomTabs && styles.bottomTabPadding,
     style
   ];
 
@@ -44,6 +49,7 @@ const Screen = ({
     contentContainerStyle: [
       styles.scrollContent,
       padding && styles.padding,
+      hasBottomTabs && { paddingBottom: bottomTabHeight },
       contentContainerStyle
     ],
     showsVerticalScrollIndicator: false,
@@ -92,6 +98,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 0,
     paddingBottom: 16
+  },
+  bottomTabPadding: {
+    paddingBottom: 100 // Default bottom tab padding for non-scrollable content
   }
 });
 

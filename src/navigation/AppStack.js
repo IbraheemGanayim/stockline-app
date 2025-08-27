@@ -22,6 +22,9 @@ import PortfolioScreen from '../screens/PortfolioScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import ExchangeScreen from '../screens/ExchangeScreen';
 import StockDetailsScreen from '../screens/StockDetailsScreen';
+import AccountScreen from '../screens/AccountScreen';
+import FAQScreen from '../screens/FAQScreen';
+import LanguageScreen from '../screens/LanguageScreen';
 import { theme } from '../theme';
 
 const Stack = createStackNavigator();
@@ -250,6 +253,33 @@ const AppStack = () => {
       <Stack.Screen
         name="StockDetails"
         component={StockDetailsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card'
+        }}
+      />
+      
+      <Stack.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card'
+        }}
+      />
+      
+      <Stack.Screen
+        name="FAQ"
+        component={FAQScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card'
+        }}
+      />
+      
+      <Stack.Screen
+        name="Language"
+        component={LanguageScreen}
         options={{
           headerShown: false,
           presentation: 'card'

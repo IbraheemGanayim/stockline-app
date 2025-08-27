@@ -209,8 +209,7 @@ const ItemDetailsScreen = ({ route, navigation }) => {
   }
 
   return (
-    <Screen padding={false}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <Screen padding={false} scrollable={true} style={styles.container}>
         <View style={styles.imageContainer}>
           {renderImage()}
         </View>
@@ -262,7 +261,6 @@ const ItemDetailsScreen = ({ route, navigation }) => {
 
           {renderOwnerActions()}
         </View>
-      </ScrollView>
     </Screen>
   );
 };

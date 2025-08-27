@@ -16,3 +16,6 @@ export { default as PortfolioScreen } from './PortfolioScreen';
 export { default as TransactionsScreen } from './TransactionsScreen';
 export { default as ExchangeScreen } from './ExchangeScreen';
 export { default as StockDetailsScreen } from './StockDetailsScreen';
+export { default as AccountScreen } from './AccountScreen';
+export { default as FAQScreen } from './FAQScreen';
+export { default as LanguageScreen } from './LanguageScreen';

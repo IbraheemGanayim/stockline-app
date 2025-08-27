@@ -347,19 +347,19 @@ const PortfolioScreen = ({ navigation }) => {
   }
 
   return (
-    <Screen padding={false} style={styles.container}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.colors.primary.main}
-            colors={[theme.colors.primary.main]}
-          />
-        }
-      >
+    <Screen 
+      padding={false} 
+      scrollable={true}
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.colors.primary.main}
+          colors={[theme.colors.primary.main]}
+        />
+      }
+    >
         {/* Live Time Indicator */}
         <View style={styles.timeIndicator}>
           <View style={styles.liveDot} />
@@ -573,7 +573,6 @@ const PortfolioScreen = ({ navigation }) => {
             </TouchableOpacity>
           ))}
         </Animated.View>
-      </ScrollView>
     </Screen>
   );
 };
@@ -756,7 +755,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 120,
+    paddingBottom: 20,
   },
   stocksHeader: {
     flexDirection: 'row',

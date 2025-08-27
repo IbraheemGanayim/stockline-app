@@ -77,7 +77,7 @@ const ProfileScreen = ({ navigation }) => {
    * Handle account settings
    */
   const handleAccount = () => {
-    console.log('Account settings');
+    navigation.navigate('Account');
   };
 
   /**
@@ -98,14 +98,14 @@ const ProfileScreen = ({ navigation }) => {
    * Handle language settings
    */
   const handleLanguage = () => {
-    console.log('Language settings');
+    navigation.navigate('Language');
   };
 
   /**
    * Handle FAQ
    */
   const handleFAQ = () => {
-    console.log('FAQ');
+    navigation.navigate('FAQ');
   };
 
   /**
@@ -133,8 +133,7 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   return (
-    <Screen padding={false} style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <Screen padding={false} scrollable={true} style={styles.container}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.userInfo}>
@@ -209,7 +208,6 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
     </Screen>
   );
 };
