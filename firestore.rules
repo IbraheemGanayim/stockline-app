@@ -1,0 +1,162 @@
+/**
+ * Firestore Security Rules for YallaBit Application
+ * Implements secure access controls with user authentication and ownership validation
+ * @author Ibraheem Ganayim
+ */
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for validation and authorization
+    
+    /**
+     * Check if user is authenticated
+     */
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Check if user owns the resource
+     */
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    /**
+     * Check if user is the same as the document owner
+     */
+    function isResourceOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    
+    /**
+     * Validate user document structure
+     */
+    function isValidUserData() {
+      let requiredFields = ['uid', 'email', 'displayName', 'createdAt', 'updatedAt'];
+      let allowedFields = ['uid', 'email', 'displayName', 'createdAt', 'updatedAt', 'emailVerified', 'photoURL', 'lastLoginAt'];
+      
+      return request.resource.data.keys().hasAll(requiredFields) &&
+             request.resource.data.keys().hasOnly(allowedFields) &&
+             request.resource.data.uid is string &&
+             request.resource.data.email is string &&
+             request.resource.data.displayName is string &&
+             request.resource.data.createdAt != null &&
+             request.resource.data.updatedAt != null;
+    }
+    
+    /**
+     * Validate item document structure
+     */
+    function isValidItemData() {
+      let requiredFields = ['title', 'description', 'price', 'category', 'userId', 'createdAt', 'updatedAt'];
+      let allowedFields = ['title', 'description', 'price', 'category', 'userId', 'createdAt', 'updatedAt', 'imageUrl'];
+      
+      return request.resource.data.keys().hasAll(requiredFields) &&
+             request.resource.data.keys().hasOnly(allowedFields) &&
+             request.resource.data.title is string &&
+             request.resource.data.description is string &&
+             request.resource.data.price is number &&
+             request.resource.data.category is string &&
+             request.resource.data.userId is string &&
+             request.resource.data.createdAt != null &&
+             request.resource.data.updatedAt != null &&
+             request.resource.data.title.size() >= 3 &&
+             request.resource.data.title.size() <= 100 &&
+             request.resource.data.description.size() >= 10 &&
+             request.resource.data.description.size() <= 500 &&
+             request.resource.data.price > 0;
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Allow users to read their own profile
+      allow read: if isOwner(userId);
+      
+      // Allow users to create their own profile during registration
+      allow create: if isOwner(userId) && 
+                       isValidUserData() &&
+                       request.resource.data.uid == userId;
+      
+      // Allow users to update their own profile
+      allow update: if isOwner(userId) && 
+                       isValidUserData() &&
+                       request.resource.data.uid == userId &&
+                       request.resource.data.email == resource.data.email; // Email cannot be changed
+      
+      // Deny delete operations (users should be deactivated, not deleted)
+      allow delete: if false;
+    }
+    
+    // Items collection rules
+    match /items/{itemId} {
+      // Allow anyone to read items (public feed)
+      allow read: if true;
+      
+      // Allow authenticated users to create items
+      allow create: if isAuthenticated() && 
+                       isValidItemData() &&
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Allow item owners to update their own items
+      allow update: if isResourceOwner() && 
+                       isValidItemData() &&
+                       request.resource.data.userId == resource.data.userId && // UserId cannot be changed
+                       request.resource.data.createdAt == resource.data.createdAt; // CreatedAt cannot be changed
+      
+      // Allow item owners to delete their own items
+      allow delete: if isResourceOwner();
+    }
+    
+    // Portfolio collection rules (using 'portfolios' with 's')
+    match /portfolios/{userId} {
+      // Allow users to read/write their own portfolio
+      allow read, write: if isOwner(userId);
+      
+      // Subcollections for portfolio details
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // Watchlist collection rules - documents contain userId field
+    match /watchlist/{watchlistId} {
+      // Allow users to read/write their own watchlist items
+      allow read, write: if isAuthenticated() && 
+                            request.auth.uid == resource.data.userId;
+      
+      // Allow creating watchlist items for authenticated users
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Holdings collection rules - documents contain userId field  
+    match /holdings/{holdingId} {
+      // Allow users to read/write their own holdings
+      allow read, write: if isAuthenticated() && 
+                            request.auth.uid == resource.data.userId;
+      
+      // Allow creating holdings for authenticated users
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Transactions collection rules
+    match /transactions/{userId} {
+      // Allow users to read/write their own transactions
+      allow read, write: if isOwner(userId);
+      
+      // Subcollections for transaction details
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // Default deny all other operations
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

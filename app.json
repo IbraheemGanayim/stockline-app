@@ -13,7 +13,22 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "localhost": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            },
+            "127.0.0.1": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            }
+          }
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +39,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "firebaseApiKey": "AIzaSyDNlWEdIg25Cx_0FYx5VxtNVf_OQ1OLxPQ",
+      "firebaseAuthDomain": "yallabit-70fde.firebaseapp.com",
+      "firebaseProjectId": "yallabit-70fde",
+      "firebaseStorageBucket": "yallabit-70fde.firebasestorage.app",
+      "firebaseMessagingSenderId": "226508767190",
+      "firebaseAppId": "1:226508767190:web:9cc8b8413e92993ac06e77"
     }
   }
 }

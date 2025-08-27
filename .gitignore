@@ -1,7 +1,10 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Dependencies
 node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # Expo
 .expo/
@@ -21,17 +24,178 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
 # macOS
 .DS_Store
 *.pem
 
-# local env files
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env*.local
 
-# typescript
+# Firebase
+.firebase/
+*-debug.log
+firebase-debug.log
+firebase-debug.*.log
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# TypeScript
 *.tsbuildinfo
+
+# Temporary folders
+tmp/
+temp/
+
+# OS generated files
+Thumbs.db
+
+# React Native
+.react-native/
+
+# Xcode
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+ios/.xcode.env.local
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+.gradle/
+build/
+local.properties
+*.iml
+.idea/workspace.xml
+.idea/libraries/
+.idea/modules.xml
+.idea/vcs.xml
+.idea/dictionaries/
+.idea/shelf/
+android/app/debug/
+android/app/release/
+
+# Gradle
+.gradle
+gradle/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+captures/
+.externalNativeBuild
+.cxx/
+
+# Keystore files
+*.keystore
+*.jks
+
+# Bundle artifacts
+*.bundle
+
+# Testing
+coverage/
+.jest/
+
+# Additional Security
+*.pem
+*.p12
+*.mobileprovision
+*.certSigningRequest
+
+# Service Account Keys
+service-account-*.json
+google-services.json
+GoogleService-Info.plist
+
+# Firebase Service Account
+firebase-service-account.json
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# EAS
+.easignore
+eas.json
+
+# Sentry
+.sentryclirc
