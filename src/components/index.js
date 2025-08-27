@@ -13,3 +13,4 @@ export { default as StockCard } from './StockCard';
 export { default as SectionHeader } from './SectionHeader';
 export { default as ValidationInput } from './ValidationInput';
 export { default as SuccessAnimation } from './SuccessAnimation';
+export { default as StockSearchModal } from './StockSearchModal';

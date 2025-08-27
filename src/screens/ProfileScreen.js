@@ -201,6 +201,14 @@ const ProfileScreen = ({ navigation }) => {
             onPress={handleFAQ}
           />
         </View>
+
+        {/* Logout Button */}
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color={theme.colors.error.main} />
+            <Text style={styles.logoutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -329,6 +337,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.text.secondary,
     marginRight: 8,
+  },
+  logoutContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  logoutButton: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.error.main,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.error.main,
+    marginLeft: 8,
   },
 });
 

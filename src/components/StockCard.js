@@ -15,15 +15,22 @@ const StockCard = ({
   change, 
   changePercent, 
   onPress,
-  showChart = false 
+  showChart = false,
+  customIcon = null,
+  iconBackgroundColor = null
 }) => {
   const isPositive = change >= 0;
   
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.leftSection}>
-        <View style={styles.iconContainer}>
-          <Text style={styles.tickerIcon}>{ticker.charAt(0)}</Text>
+        <View style={[
+          styles.iconContainer,
+          iconBackgroundColor && { backgroundColor: iconBackgroundColor }
+        ]}>
+          {customIcon ? customIcon : (
+            <Text style={styles.tickerIcon}>{ticker.charAt(0)}</Text>
+          )}
         </View>
         <View style={styles.stockInfo}>
           <Text style={styles.ticker}>{ticker}</Text>

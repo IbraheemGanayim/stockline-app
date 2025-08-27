@@ -1,5 +1,5 @@
 /**
- * Transactions hook for managing transaction data and operations
+ * Transactions hook for managing user's transaction history
  * @author Ibraheem Ganayim
  */
 
@@ -7,9 +7,9 @@ import { useState, useEffect } from 'react';
 import { useAuthUser } from './useAuthUser';
 import { 
   getUserTransactions, 
-  addTransaction, 
   subscribeToUserTransactions,
-  getTransactionStats
+  getTransactionStats,
+  addTransaction as addTransactionService
 } from '../services/transactions';
 
 /**
@@ -43,12 +43,12 @@ export const useTransactions = () => {
         setLoading(true);
         setError(null);
 
-        const [transactionsData, statsData] = await Promise.all([
+        const [transactionData, statsData] = await Promise.all([
           getUserTransactions(user.uid),
           getTransactionStats(user.uid)
         ]);
 
-        setTransactions(transactionsData);
+        setTransactions(transactionData);
         setStats(statsData);
       } catch (err) {
         console.error('Error loading transaction data:', err);
@@ -65,37 +65,46 @@ export const useTransactions = () => {
   useEffect(() => {
     if (!user?.uid) return;
 
-    const unsubscribe = subscribeToUserTransactions(user.uid, (transactionsData) => {
-      setTransactions(transactionsData);
-      // Update stats when transactions change
-      getTransactionStats(user.uid).then(setStats);
+    const unsubscribe = subscribeToUserTransactions(user.uid, (transactionData) => {
+      setTransactions(transactionData);
     });
 
     return unsubscribe;
   }, [user?.uid]);
 
   // Add new transaction
-  const createTransaction = async (transactionData) => {
+  const addTransaction = async (transactionData) => {
     if (!user?.uid) {
       return { success: false, error: 'User not authenticated' };
     }
 
     try {
-      const result = await addTransaction(transactionData, user.uid);
-      
-      if (result.success) {
-        // Refresh stats after adding transaction
-        const newStats = await getTransactionStats(user.uid);
-        setStats(newStats);
-      }
-      
+      const result = await addTransactionService(transactionData, user.uid);
       return result;
     } catch (err) {
-      console.error('Error creating transaction:', err);
+      console.error('Error adding transaction:', err);
       return { 
         success: false, 
-        error: 'Failed to create transaction. Please try again.' 
+        error: 'Failed to add transaction. Please try again.' 
       };
+    }
+  };
+
+  // Refresh transaction data
+  const refresh = async () => {
+    if (!user?.uid) return;
+    
+    try {
+      setError(null);
+      const [transactionData, statsData] = await Promise.all([
+        getUserTransactions(user.uid),
+        getTransactionStats(user.uid)
+      ]);
+      setTransactions(transactionData);
+      setStats(statsData);
+    } catch (err) {
+      console.error('Error refreshing transactions:', err);
+      setError('Failed to refresh transactions');
     }
   };
 
@@ -104,22 +113,7 @@ export const useTransactions = () => {
     stats,
     loading,
     error,
-    createTransaction,
-    refresh: async () => {
-      if (!user?.uid) return;
-      
-      try {
-        setError(null);
-        const [transactionsData, statsData] = await Promise.all([
-          getUserTransactions(user.uid),
-          getTransactionStats(user.uid)
-        ]);
-        setTransactions(transactionsData);
-        setStats(statsData);
-      } catch (err) {
-        console.error('Error refreshing transactions:', err);
-        setError('Failed to refresh transactions');
-      }
-    }
+    addTransaction,
+    refresh
   };
 };

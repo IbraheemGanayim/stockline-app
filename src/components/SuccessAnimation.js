@@ -1,251 +1,186 @@
 /**
- * SuccessAnimation - Beautiful success feedback with animations
- * Shows success states for login/signup completion
+ * Success Animation Component
+ * Shows a success animation with message for completed transactions
  * @author Ibraheem Ganayim
  */
 
-import React, { useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
   StyleSheet,
   Animated,
   Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
-const { width } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
-const SuccessAnimation = ({ 
-  visible, 
-  title = 'Success!', 
-  message = 'Welcome back!',
-  onComplete,
-  duration = 2000 
-}) => {
-  const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const scaleAnimation = useRef(new Animated.Value(0)).current;
-  const checkmarkAnimation = useRef(new Animated.Value(0)).current;
-  const slideAnimation = useRef(new Animated.Value(50)).current;
+/**
+ * SuccessAnimation component
+ * @param {string} message - Main success message
+ * @param {string} subMessage - Secondary message
+ */
+const SuccessAnimation = ({ message = 'Success!', subMessage }) => {
+  const [scaleAnim] = useState(new Animated.Value(0));
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [bounceAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    if (visible) {
-      // Sequence of animations
-      Animated.sequence([
-        // Fade in background
-        Animated.timing(fadeAnimation, {
+    // Start animations
+    Animated.sequence([
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
           toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        // Scale in container
-        Animated.spring(scaleAnimation, {
-          toValue: 1,
-          tension: 50,
+          tension: 100,
           friction: 8,
           useNativeDriver: true,
         }),
-        // Animate checkmark
-        Animated.timing(checkmarkAnimation, {
+        Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 400,
+          duration: 600,
           useNativeDriver: true,
         }),
-        // Slide in text
-        Animated.timing(slideAnimation, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      // Auto-hide after duration
-      const timeout = setTimeout(() => {
-        Animated.timing(fadeAnimation, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          if (onComplete) onComplete();
-        });
-      }, duration);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [visible, duration, onComplete]);
-
-  if (!visible) return null;
+      ]),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(bounceAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(bounceAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: 3 }
+      ),
+    ]).start();
+  }, [scaleAnim, fadeAnim, bounceAnim]);
 
   return (
     <Animated.View 
       style={[
-        styles.overlay,
-        { opacity: fadeAnimation }
+        styles.container,
+        {
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }]
+        }
       ]}
     >
-      <Animated.View 
-        style={[
-          styles.container,
-          { 
-            transform: [{ scale: scaleAnimation }] 
-          }
-        ]}
+      <LinearGradient
+        colors={[theme.colors.success.main, theme.colors.success.light]}
+        style={styles.successCard}
       >
-        {/* Success Icon with Animation */}
-        <View style={styles.iconContainer}>
-          <Animated.View 
-            style={[
-              styles.iconBackground,
-              {
-                transform: [
-                  {
-                    scale: checkmarkAnimation.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [0, 1.2, 1],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            <Animated.View
-              style={{
-                opacity: checkmarkAnimation,
-                transform: [
-                  {
-                    scale: checkmarkAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 1],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <Ionicons 
-                name="checkmark" 
-                size={48} 
-                color="white" 
-              />
-            </Animated.View>
-          </Animated.View>
-        </View>
-
-        {/* Success Text */}
         <Animated.View 
           style={[
-            styles.textContainer,
+            styles.iconContainer,
             {
-              transform: [{ translateY: slideAnimation }],
-              opacity: slideAnimation.interpolate({
-                inputRange: [0, 50],
-                outputRange: [1, 0],
-              }),
-            },
+              transform: [{
+                scale: bounceAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 1.2]
+                })
+              }]
+            }
           ]}
         >
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          <Ionicons name="checkmark-circle" size={64} color="#FFFFFF" />
         </Animated.View>
-
-        {/* Ripple Effect */}
-        <Animated.View 
-          style={[
-            styles.ripple,
-            {
-              transform: [
+        
+        <Text style={styles.successMessage}>{message}</Text>
+        {subMessage && (
+          <Text style={styles.successSubMessage}>{subMessage}</Text>
+        )}
+        
+        {/* Success particles effect */}
+        <View style={styles.particlesContainer}>
+          {[...Array(6)].map((_, index) => (
+            <Animated.View 
+              key={index}
+              style={[
+                styles.particle,
                 {
-                  scale: checkmarkAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 3],
-                  }),
-                },
-              ],
-              opacity: checkmarkAnimation.interpolate({
-                inputRange: [0, 0.5, 1],
-                outputRange: [0, 0.3, 0],
-              }),
-            },
-          ]}
-        />
-      </Animated.View>
+                  opacity: bounceAnim,
+                  transform: [{
+                    translateY: bounceAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -20 - (index * 5)]
+                    })
+                  }, {
+                    translateX: bounceAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, (index % 2 === 0 ? 1 : -1) * (10 + index * 3)]
+                    })
+                  }]
+                }
+              ]}
+            />
+          ))}
+        </View>
+      </LinearGradient>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
   container: {
-    backgroundColor: 'white',
-    borderRadius: 24,
-    padding: 40,
-    alignItems: 'center',
-    maxWidth: width - 60,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 20,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    elevation: 20,
-  },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: 24,
-  },
-  iconBackground: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.stock.gain,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: theme.colors.stock.gain,
+  },
+  successCard: {
+    backgroundColor: theme.colors.success.main,
+    paddingVertical: 40,
+    paddingHorizontal: 32,
+    borderRadius: 24,
+    alignItems: 'center',
+    minWidth: screenWidth * 0.7,
+    shadowColor: theme.colors.success.main,
     shadowOffset: {
       width: 0,
       height: 8,
     },
     shadowOpacity: 0.3,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 12,
   },
-  ripple: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.stock.gain,
-    top: '50%',
-    left: '50%',
-    marginTop: -50,
-    marginLeft: -50,
+  iconContainer: {
+    marginBottom: 16,
   },
-  textContainer: {
-    alignItems: 'center',
-  },
-  title: {
+  successMessage: {
     fontSize: 24,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 8,
-    textAlign: 'center',
   },
-  message: {
+  successSubMessage: {
     fontSize: 16,
-    color: theme.colors.text.secondary,
+    fontWeight: '500',
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 22,
+    opacity: 0.9,
+  },
+  particlesContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  particle: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.7,
   },
 });
 
