@@ -1,42 +1,43 @@
-# YallaBit – React Native Expo Assignment
+# 📱 Stockline – React Native Expo Assignment
 
-> A clean Expo React Native app with Firebase auth, Firestore CRUD, protected navigation, and a polished UI.
+> Built from the Stockline Figma kit as a take-home assignment, demonstrating a complete mobile app with authentication, protected routes, Firestore CRUD, and a responsive Stockline UI.
 
-Developed by **Ibraheem Ganayim** as part of the YallaBit App Developer take-home assignment.
-
----
-
-## Overview
-
-YallaBit is a production-ready React Native application built with Expo that demonstrates a complete mobile workflow: authentication, protected routes, Firestore-backed CRUD, image uploads to Storage, and a responsive UI. It showcases solid app architecture and best practices tailored for a take-home assignment context. ⚡
+Developed by **Ibraheem Ganayim** – 📧 Ibraheem.Ganayim@gmail.com
 
 ---
 
-## Features
+## 1) Overview
 
-- 🔐 **Email/Password Authentication** with session persistence
-- 🔏 **Protected Navigation** (auth vs. app stacks)
-- 🔥 **Firestore CRUD** with real-time listeners and hooks
-- 🗃️ **Collections**: items, watchlist, holdings, portfolios, transactions
-- 🖼️ **Image Uploads** to Firebase Storage
-- 📡 **Offline-friendly** patterns and stable error handling
-- 📱 **Responsive UI** with reusable components and consistent theming
-- ✅ **Type-friendly setup** (TS config) and clean code structure
+Stockline is a React Native app (Expo) that showcases best practices for a modern mobile stack: Firebase Authentication, Firestore-backed data with secure ownership rules, optional Storage for images, and a clean, reusable UI inspired by the Stockline Figma kit. ⚡
+
+Tech summary: React Native + Expo, React Navigation, Firebase (Auth, Firestore, Storage), AsyncStorage, custom hooks/contexts, and a component-driven design system.
 
 ---
 
-## Tech Stack
+## 2) Features
+
+- 🔐 Email/Password authentication with session persistence
+- 🔏 Protected routes (Auth stack vs App stack)
+- 🔥 Firestore CRUD with real-time listeners and hooks
+- 🖼️ Optional image uploads to Firebase Storage
+- 📱 Responsive, reusable UI following the Stockline visual system
+- 📡 Stable error handling and offline-friendly patterns
+- ✅ Type-friendly setup and clean, readable code
+
+---
+
+## 3) Tech Stack
 
 - React Native + Expo
 - React Navigation (Stacks, Tabs)
 - Firebase: Authentication, Firestore, Storage
 - AsyncStorage for auth persistence
 - Expo Image Picker, Vector Icons
-- Custom hooks, contexts, and component library
+- Custom hooks, contexts, and a small component library
 
 ---
 
-## Folder Structure
+## 4) Folder Structure
 
 ```
 src/
@@ -96,11 +97,11 @@ src/
     validation.js
 ```
 
-Additional top-level files: `App.js`, `app.json`, `firebase.json`, `firestore.rules`, `storage.rules`, `metro.config.js`, `tsconfig.json`.
+Top-level: `App.js`, `app.json`, `firebase.json`, `firestore.rules`, `storage.rules`, `metro.config.js`, `tsconfig.json`.
 
 ---
 
-## Setup & Installation
+## 5) Setup & Installation
 
 ### Prerequisites
 
@@ -110,21 +111,20 @@ Additional top-level files: `App.js`, `app.json`, `firebase.json`, `firestore.ru
 - Expo CLI: `npm i -g @expo/cli`
 - Firebase CLI: `npm i -g firebase-tools`
 
-### 1) Clone the repo
+### Steps
+
+1) Clone the repo
 ```bash
 git clone https://github.com/ibraheemganayim/YallaBit.git
 cd YallaBit
 ```
 
-### 2) Install dependencies
+2) Install dependencies
 ```bash
 npm install
-# or
-yarn
 ```
 
-### 3) Environment variables (.env)
-Create a `.env` in the project root and paste your Firebase web app config:
+3) Create `.env` and add Firebase keys
 ```bash
 touch .env
 ```
@@ -135,7 +135,7 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
-# Optional (for local emulators during development)
+# Optional (local emulators during development)
 EXPO_PUBLIC_FIREBASE_USE_EMULATORS=false
 ```
 
@@ -144,59 +144,47 @@ This project loads env via `@env` (see `babel.config.js`). Example:
 import { EXPO_PUBLIC_FIREBASE_API_KEY } from '@env';
 ```
 
-### 4) Firebase project and rules
-- Create a Firebase project and a Web App in the Firebase Console.
-- Enable Email/Password Auth, Firestore, and Storage.
-- Login/select your project via CLI and deploy rules/indexes:
+4) Start the app
+```bash
+npm start
+# then press i (iOS), a (Android), or w (Web)
+```
+
+Tips:
+- Clear cache: `expo start -c`.
+- Android emulator reaches localhost at `10.0.2.2`; iOS uses `127.0.0.1`.
+
+---
+
+## 6) Firebase Setup
+
+1) Create a Firebase project and Web App in the Firebase Console
+2) Enable Email/Password Authentication 🔐
+3) Create a Firestore database 🔥
+4) (Optional) Enable Storage for image uploads 🖼️
+5) Paste the Web App config into `.env` (keys above)
+6) Deploy Firestore rules
 ```bash
 firebase login
 firebase use <your-project-id>
-firebase deploy --only firestore:rules,firestore:indexes,storage:rules
+firebase deploy --only firestore:rules
 ```
-
-### 5) Run the app
-```bash
-npm start
-# or directly
-npm run ios
-npm run android
-```
-Tips:
-- Press i (iOS), a (Android), or w (Web) in the Expo terminal.
-- Clear cache if needed: `expo start -c`.
-- Android emulator uses `10.0.2.2` to reach localhost; iOS uses `127.0.0.1`.
 
 ---
 
-## Firebase Setup
-
-1) Create a Firebase project at the Firebase Console
-2) Enable Authentication → Sign-in method → Email/Password (Enabled) 🔐
-3) Create a Firestore database (Start in production or test mode) 🔥
-4) Enable Firebase Storage for image uploads 🖼️
-5) From Project settings → Your apps, copy the web app config and paste into `.env` using the keys above
-
-Notes:
-- The app reads env via `EXPO_PUBLIC_*` variables. With Expo, these are available at build time and via `process.env`/`@env`.
-- Emulators can be toggled by setting `EXPO_PUBLIC_FIREBASE_USE_EMULATORS=true` in development.
-
----
-
-## Usage
+## 7) Usage / Demo Flow
 
 1) Signup → create an account with email/password
-2) Login → enter credentials to access the app
-3) Home → view items and lists (real-time Firestore)
-4) Create Item → add a new item with optional image upload
+2) Login → access the protected app
+3) Home → view items (real-time Firestore)
+4) Create Item → add items, optionally upload an image
 5) Item Details → view details and perform allowed actions
 6) Profile → view/manage your profile and lists
-7) Logout → sign out to return to the auth flow
+7) Logout → sign out and return to the auth flow
 
 ---
 
-## Firestore Rules
-
-These are the security rules used by the app (excerpt). Deploy with Firebase CLI as needed.
+## 8) Firestore Rules (ownership-based excerpt)
 
 ```rules
 rules_version = '2';
@@ -207,9 +195,7 @@ service cloud.firestore {
     function isResourceOwner() { return isAuthenticated() && request.auth.uid == resource.data.userId; }
 
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow read, create, update: if isOwner(userId);
       allow delete: if false;
     }
 
@@ -224,12 +210,12 @@ service cloud.firestore {
       match /{document=**} { allow read, write: if isOwner(userId); }
     }
 
-    match /watchlist/{watchlistId} {
+    match /watchlist/{id} {
       allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
     }
 
-    match /holdings/{holdingId} {
+    match /holdings/{id} {
       allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
     }
@@ -240,19 +226,46 @@ service cloud.firestore {
     }
 
     match /{document=**} { allow read, write: if false; }
-     }
-   }
-   ```
+  }
+}
+```
 
-See `firestore.rules` and `storage.rules` in the repo for full rules. ✅
+See `firestore.rules` and `storage.rules` for the full versions. ✅
 
 ---
 
-## Demo Video
+## 9) For Contributors
+
+Welcome! To propose improvements:
+
+1) Fork this repository to your GitHub account
+2) Clone your fork and create a feature branch
+```bash
+git checkout -b feat/your-change
+```
+3) Install and run locally (see Setup & Installation)
+4) Keep changes focused and follow the existing code style
+5) Commit with clear messages and push your branch
+```bash
+git commit -m "feat: add X (short description)"
+git push origin feat/your-change
+```
+6) Open a Pull Request against the main repository with a clear description, screenshots when relevant, and testing notes
+
+---
+
+## 10) Demo Video
 
 [Watch the demo (placeholder)](https://www.loom.com/share/REPLACE_WITH_YOUR_VIDEO_LINK) 🎥
 
 ---
 
-Developed by **Ibraheem Ganayim**  
-Contact: Ibraheem.Ganayim@gmail.com
+## 11) Contact
+
+Developed by **Ibraheem Ganayim** – 📧 Ibraheem.Ganayim@gmail.com
+
+---
+
+Developed by **Ibraheem Ganayim** – 📧 Ibraheem.Ganayim@gmail.com
+
+
