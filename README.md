@@ -1,360 +1,258 @@
-# YallaBit - React Native Mobile Application
+# YallaBit – React Native Expo Assignment
 
-> A modern, feature-rich React Native + Expo application for sharing and discovering items in your community.
+> A clean Expo React Native app with Firebase auth, Firestore CRUD, protected navigation, and a polished UI.
 
-**Developed by:** [Ibraheem Ganayim](https://github.com/ibraheemganayim)  
-**Version:** 1.0.0  
-**Platform:** React Native + Expo  
-**Backend:** Firebase (Auth + Firestore + Storage)
+Developed by **Ibraheem Ganayim** as part of the YallaBit App Developer take-home assignment.
 
 ---
 
-## 📱 Overview
+## Overview
 
-YallaBit is a production-ready mobile application that allows users to share, discover, and manage items within their community. The app features a modern UI based on the Stockline design system, complete user authentication, real-time data synchronization, and comprehensive CRUD operations.
-
-### ✨ Key Features
-
-- **🔐 User Authentication**: Secure email/password authentication with session persistence
-- **📱 Cross-Platform**: Optimized for both iOS and Android devices
-- **🎨 Modern UI**: Clean, responsive design based on Stockline UI Kit
-- **⚡ Real-time Data**: Live updates using Firestore real-time listeners
-- **📸 Image Upload**: Firebase Storage integration for item images
-- **🔍 Search & Filter**: Advanced search functionality with category filtering
-- **👤 User Profiles**: Complete profile management with user statistics
-- **🛡️ Security**: Comprehensive Firestore security rules and data validation
-- **🎯 Type-safe**: Well-structured codebase with detailed documentation
+YallaBit is a production-ready React Native application built with Expo that demonstrates a complete mobile workflow: authentication, protected routes, Firestore-backed CRUD, image uploads to Storage, and a responsive UI. It showcases solid app architecture and best practices tailored for a take-home assignment context. ⚡
 
 ---
 
-## 🏗️ Architecture
+## Features
 
-### Project Structure
+- 🔐 **Email/Password Authentication** with session persistence
+- 🔏 **Protected Navigation** (auth vs. app stacks)
+- 🔥 **Firestore CRUD** with real-time listeners and hooks
+- 🗃️ **Collections**: items, watchlist, holdings, portfolios, transactions
+- 🖼️ **Image Uploads** to Firebase Storage
+- 📡 **Offline-friendly** patterns and stable error handling
+- 📱 **Responsive UI** with reusable components and consistent theming
+- ✅ **Type-friendly setup** (TS config) and clean code structure
+
+---
+
+## Tech Stack
+
+- React Native + Expo
+- React Navigation (Stacks, Tabs)
+- Firebase: Authentication, Firestore, Storage
+- AsyncStorage for auth persistence
+- Expo Image Picker, Vector Icons
+- Custom hooks, contexts, and component library
+
+---
+
+## Folder Structure
 
 ```
-YallaBit/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── Card.js         # Item display cards
-│   │   ├── FormInput.js    # Form input with validation
-│   │   ├── PrimaryButton.js # Customizable button component
-│   │   ├── Screen.js       # Base screen wrapper
-│   │   └── index.js        # Component exports
-│   ├── contexts/           # React Context providers
-│   │   └── AuthProvider.js # Authentication state management
-│   ├── hooks/              # Custom React hooks
-│   │   ├── useAuthUser.js  # Authentication hook
-│   │   ├── useCollection.js # Firestore collection hook
-│   │   ├── useDoc.js       # Firestore document hook
-│   │   └── index.js        # Hook exports
-│   ├── navigation/         # React Navigation setup
-│   │   ├── AppStack.js     # Authenticated user navigation
-│   │   ├── AuthStack.js    # Authentication flow navigation
-│   │   ├── RootNavigator.js # Main navigation controller
-│   │   └── index.js        # Navigation exports
-│   ├── screens/            # Screen components
-│   │   ├── LoginScreen.js      # User login
-│   │   ├── SignupScreen.js     # User registration
-│   │   ├── HomeScreen.js       # Main item feed
-│   │   ├── ItemDetailsScreen.js # Item detail view
-│   │   ├── CreateItemScreen.js # Item creation form
-│   │   ├── ProfileScreen.js    # User profile & items
-│   │   ├── SettingsScreen.js   # App settings
-│   │   └── index.js            # Screen exports
-│   ├── services/           # External service integrations
-│   │   ├── firebase.js     # Firebase configuration
-│   │   ├── auth.js         # Authentication services
-│   │   ├── db.js           # Firestore database operations
-│   │   └── storage.js      # Firebase Storage operations
-│   └── theme/              # Design system
-│       ├── colors.js       # Color palette
-│       ├── typography.js   # Text styles
-│       ├── spacing.js      # Layout spacing
-│       └── index.js        # Theme exports
-├── firestore.rules         # Security rules
-├── App.js                  # Main app entry point
-├── package.json           # Dependencies
-└── README.md              # This file
+src/
+  components/
+    Card.js
+    FormInput.js
+    PortfolioCard.js
+    PrimaryButton.js
+    Screen.js
+    SectionHeader.js
+    StockCard.js
+    SuccessAnimation.js
+    ValidationInput.js
+    index.js
+  contexts/
+    AuthProvider.js
+  firebase-config.ts
+  hooks/
+    index.js
+    useAuthUser.js
+    useCollection.js
+    useDoc.js
+    usePortfolio.js
+    useTransactions.js
+    useWatchlist.js
+  navigation/
+    AppStack.js
+    AuthStack.js
+    RootNavigator.js
+    index.js
+  screens/
+    CreateItemScreen.js
+    HomeScreen.js
+    ItemDetailsScreen.js
+    LoginScreen.js
+    PortfolioScreen.js
+    ProfileScreen.js
+    SettingsScreen.js
+    SignupScreen.js
+    TransactionsScreen.js
+    index.js
+  services/
+    auth.js
+    connectionTest.js
+    db.js
+    firebase.js
+    portfolio.js
+    storage.js
+    transactions.js
+    watchlist.js
+  theme/
+    colors.js
+    spacing.js
+    typography.js
+    index.js
+  utils/
+    validation.js
 ```
 
-### Technology Stack
-
-- **Frontend**: React Native + Expo
-- **Navigation**: React Navigation v6
-- **Backend**: Firebase (Authentication, Firestore, Storage)
-- **State Management**: React Context + Custom Hooks
-- **UI Components**: Custom components based on Stockline design
-- **Image Handling**: Expo Image Picker + Firebase Storage
-- **Data Persistence**: AsyncStorage for session management
+Additional top-level files: `App.js`, `app.json`, `firebase.json`, `firestore.rules`, `storage.rules`, `metro.config.js`, `tsconfig.json`.
 
 ---
 
-## 🚀 Getting Started
+## Setup & Installation
 
 ### Prerequisites
 
-- Node.js (v16 or later)
-- npm or yarn
-- Expo CLI (`npm install -g @expo/cli`)
-- iOS Simulator (for iOS testing)
-- Android Studio/Emulator (for Android testing)
-- Firebase project with Authentication, Firestore, and Storage enabled
+- Node.js 18+ and npm
+- Xcode + iOS Simulator (macOS) for iOS
+- Android Studio + Android Emulator for Android
+- Expo CLI: `npm i -g @expo/cli`
+- Firebase CLI: `npm i -g firebase-tools`
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repository-url>
-   cd YallaBit
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Firebase Setup**
-   
-   a. Create a new Firebase project at [Firebase Console](https://console.firebase.google.com)
-   
-   b. Enable Authentication with Email/Password provider
-   
-   c. Create a Firestore database
-   
-   d. Enable Firebase Storage
-   
-   e. Get your Firebase configuration
-
-4. **Environment Configuration**
-   
-   a. Copy the environment template:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   b. Update `.env` with your Firebase configuration:
-   ```env
-   EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key_here
-   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-   EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
-   ```
-
-5. **Deploy Firestore Security Rules**
-   ```bash
-   firebase deploy --only firestore:rules
-   ```
-
-6. **Start the development server**
-   ```bash
-   npm start
-   ```
-
-### Running the App
-
-- **iOS**: Press `i` in the terminal or scan the QR code with Camera app
-- **Android**: Press `a` in the terminal or scan the QR code with Expo Go app
-- **Web**: Press `w` in the terminal (limited functionality)
-
----
-
-## 📱 App Features & Demo Flow
-
-### Authentication Flow
-1. **Login Screen**: Secure email/password authentication
-2. **Signup Screen**: User registration with display name
-3. **Session Persistence**: Automatic login on app restart
-4. **Password Reset**: Email-based password recovery
-
-### Main Application Flow
-1. **Home Feed**: Browse all shared items with search and filtering
-2. **Item Details**: View detailed item information with owner actions
-3. **Create Item**: Add new items with image upload and categorization
-4. **User Profile**: Manage account and view personal items
-5. **Settings**: Account management and app configuration
-
-### Key User Interactions
-- **Browse Items**: Scroll through the community feed
-- **Search**: Find items by title, description, or category
-- **View Details**: Tap any item to see full details
-- **Create Item**: Use the + tab to share new items
-- **Manage Profile**: View and edit personal information
-- **Item Management**: Edit or delete your own items
-
----
-
-## 🛡️ Security & Data Protection
-
-### Authentication Security
-- Firebase Authentication with secure token management
-- Session persistence with secure local storage
-- Automatic token refresh and validation
-- Protected routes requiring authentication
-
-### Data Security
-- Comprehensive Firestore security rules
-- User-based data ownership validation
-- Input sanitization and validation
-- Secure image upload with file type validation
-
-### Privacy Features
-- Users can only edit/delete their own items
-- Profile information is user-controlled
-- Secure data transmission over HTTPS
-- No sensitive data stored in local storage
-
----
-
-## 🎨 Design System
-
-### Color Palette
-- **Primary**: #007AFF (iOS Blue)
-- **Secondary**: #FF6B35 (Orange accent)
-- **Neutral**: Gray scale from #FFFFFF to #212121
-- **Semantic**: Success (Green), Warning (Orange), Error (Red)
-
-### Typography
-- **System Font**: Platform-native fonts
-- **Scale**: 12px to 48px with consistent line heights
-- **Weights**: Light (300) to Bold (700)
-
-### Spacing
-- **8px Grid System**: Consistent spacing multiples
-- **Component Padding**: 16px standard
-- **Section Margins**: 24px between sections
-
----
-
-## 🧪 Testing & Quality Assurance
-
-### Code Quality
-- Comprehensive inline documentation
-- Consistent naming conventions
-- Error handling and user feedback
-- Input validation and sanitization
-
-### Testing Approach
-- Manual testing on iOS and Android
-- Authentication flow validation
-- CRUD operations testing
-- UI responsiveness testing
-- Error handling verification
-
----
-
-## 📦 Dependencies
-
-### Core Dependencies
-```json
-{
-  "expo": "~53.0.22",
-  "react": "19.0.0",
-  "react-native": "0.79.6",
-  "@react-navigation/native": "^6.1.9",
-  "@react-navigation/stack": "^6.3.20",
-  "@react-navigation/bottom-tabs": "^6.5.11",
-  "firebase": "^10.7.1",
-  "@react-native-async-storage/async-storage": "^1.21.0",
-  "@expo/vector-icons": "^14.0.0",
-  "expo-image-picker": "~15.0.7",
-  "expo-constants": "~16.0.2",
-  "react-native-screens": "^4.2.0",
-  "react-native-safe-area-context": "^4.10.5",
-  "react-native-gesture-handler": "^2.16.1"
-}
+### 1) Clone the repo
+```bash
+git clone https://github.com/ibraheemganayim/YallaBit.git
+cd YallaBit
 ```
 
+### 2) Install dependencies
+```bash
+npm install
+# or
+yarn
+```
+
+### 3) Environment variables (.env)
+Create a `.env` in the project root and paste your Firebase web app config:
+```bash
+touch .env
+```
+```env
+EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+# Optional (for local emulators during development)
+EXPO_PUBLIC_FIREBASE_USE_EMULATORS=false
+```
+
+This project loads env via `@env` (see `babel.config.js`). Example:
+```js
+import { EXPO_PUBLIC_FIREBASE_API_KEY } from '@env';
+```
+
+### 4) Firebase project and rules
+- Create a Firebase project and a Web App in the Firebase Console.
+- Enable Email/Password Auth, Firestore, and Storage.
+- Login/select your project via CLI and deploy rules/indexes:
+```bash
+firebase login
+firebase use <your-project-id>
+firebase deploy --only firestore:rules,firestore:indexes,storage:rules
+```
+
+### 5) Run the app
+```bash
+npm start
+# or directly
+npm run ios
+npm run android
+```
+Tips:
+- Press i (iOS), a (Android), or w (Web) in the Expo terminal.
+- Clear cache if needed: `expo start -c`.
+- Android emulator uses `10.0.2.2` to reach localhost; iOS uses `127.0.0.1`.
+
 ---
 
-## 🚀 Deployment
+## Firebase Setup
 
-### Building for Production
+1) Create a Firebase project at the Firebase Console
+2) Enable Authentication → Sign-in method → Email/Password (Enabled) 🔐
+3) Create a Firestore database (Start in production or test mode) 🔥
+4) Enable Firebase Storage for image uploads 🖼️
+5) From Project settings → Your apps, copy the web app config and paste into `.env` using the keys above
 
-1. **Configure app.json**
-   ```json
-   {
-     "expo": {
-       "name": "YallaBit",
-       "slug": "yallabit",
-       "version": "1.0.0",
-       "platforms": ["ios", "android"],
-       "icon": "./assets/icon.png",
-       "splash": {
-         "image": "./assets/splash-icon.png"
-       }
+Notes:
+- The app reads env via `EXPO_PUBLIC_*` variables. With Expo, these are available at build time and via `process.env`/`@env`.
+- Emulators can be toggled by setting `EXPO_PUBLIC_FIREBASE_USE_EMULATORS=true` in development.
+
+---
+
+## Usage
+
+1) Signup → create an account with email/password
+2) Login → enter credentials to access the app
+3) Home → view items and lists (real-time Firestore)
+4) Create Item → add a new item with optional image upload
+5) Item Details → view details and perform allowed actions
+6) Profile → view/manage your profile and lists
+7) Logout → sign out to return to the auth flow
+
+---
+
+## Firestore Rules
+
+These are the security rules used by the app (excerpt). Deploy with Firebase CLI as needed.
+
+```rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(userId) { return isAuthenticated() && request.auth.uid == userId; }
+    function isResourceOwner() { return isAuthenticated() && request.auth.uid == resource.data.userId; }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /items/{itemId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if isResourceOwner();
+    }
+
+    match /portfolios/{userId} {
+      allow read, write: if isOwner(userId);
+      match /{document=**} { allow read, write: if isOwner(userId); }
+    }
+
+    match /watchlist/{watchlistId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /holdings/{holdingId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /transactions/{userId} {
+      allow read, write: if isOwner(userId);
+      match /{document=**} { allow read, write: if isOwner(userId); }
+    }
+
+    match /{document=**} { allow read, write: if false; }
      }
    }
    ```
 
-2. **Build for iOS**
-   ```bash
-   expo build:ios
-   ```
-
-3. **Build for Android**
-   ```bash
-   expo build:android
-   ```
-
-### Environment-Specific Configurations
-- Production Firebase project
-- App store assets and metadata
-- Performance optimization
-- Analytics integration (optional)
+See `firestore.rules` and `storage.rules` in the repo for full rules. ✅
 
 ---
 
-## 🤝 Contributing
+## Demo Video
 
-This project was developed as a take-home assignment for YallaBit by **Ibraheem Ganayim**. All code, architecture decisions, and implementation details are original work.
-
-### Development Guidelines
-- Follow existing code patterns and conventions
-- Maintain comprehensive documentation
-- Implement proper error handling
-- Write clean, readable code
-- Test on both iOS and Android platforms
+[Watch the demo (placeholder)](https://www.loom.com/share/REPLACE_WITH_YOUR_VIDEO_LINK) 🎥
 
 ---
 
-## 📄 License
-
-This project is developed as part of a technical assessment for YallaBit. All rights reserved.
-
-**Developer**: Ibraheem Ganayim  
-**Contact**: [GitHub Profile](https://github.com/ibraheemganayim)
-
----
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-1. **Firebase Configuration Error**
-   - Verify `.env` file contains correct Firebase config
-   - Ensure Firebase project has Authentication and Firestore enabled
-   - Check console for detailed error messages
-
-2. **Navigation Issues**
-   - Clear Metro cache: `expo start -c`
-   - Restart development server
-   - Verify all screen imports are correct
-
-3. **Build Errors**
-   - Run `npm install` to ensure all dependencies are installed
-   - Check for any peer dependency warnings
-   - Verify React Native and Expo CLI are up to date
-
-### Getting Help
-
-For technical issues related to this implementation, please refer to:
-- Firebase Documentation
-- React Navigation Documentation
-- Expo Documentation
-- React Native Documentation
-
----
-
-**Built with ❤️ by Ibraheem Ganayim for YallaBit**
+Developed by **Ibraheem Ganayim**  
+Contact: Ibraheem.Ganayim@gmail.com
