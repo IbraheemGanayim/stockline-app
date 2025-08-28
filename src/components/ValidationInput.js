@@ -29,6 +29,8 @@ const ValidationInput = ({
   autoCorrect = false,
   style,
   showRequirements = false,
+  onFocus,
+  onBlur,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -146,8 +148,14 @@ const ValidationInput = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={() => {
+            setIsFocused(true);
+            if (onFocus) onFocus();
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            if (onBlur) onBlur();
+          }}
           accessibilityLabel={label || placeholder}
           accessibilityHint={validationResult.message}
           {...props}
