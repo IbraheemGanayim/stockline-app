@@ -106,9 +106,9 @@ const SignupScreen = ({ navigation }) => {
       );
 
       if (result.success) {
-        // Show success animation
-        setShowSuccess(true);
-        // Navigation will be handled by auth context after animation
+        // User is now authenticated, auth context will switch to AppStack
+        // We'll handle welcome screen navigation in the auth context or separately
+        console.log('Account created successfully for:', formData.displayName.trim());
       } else {
         // Show friendly error message
         const friendlyError = getFirebaseErrorMessage(result.error);

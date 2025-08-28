@@ -8,6 +8,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 import { theme } from '../theme';
 
 const Stack = createStackNavigator();
@@ -54,6 +55,15 @@ const AuthStack = () => {
           title: 'Create Account',
           headerShown: true,
           headerLeft: null, // Remove back button to force users to complete signup
+          gestureEnabled: false // Disable swipe back gesture
+        }}
+      />
+      <Stack.Screen
+        name="Welcome"
+        component={WelcomeScreen}
+        options={{
+          title: 'Welcome',
+          headerShown: false,
           gestureEnabled: false // Disable swipe back gesture
         }}
       />

@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
 
   /**
    * Save user data to AsyncStorage for session persistence
@@ -130,6 +131,8 @@ export const AuthProvider = ({ children }) => {
       const result = await registerUser(email, password, displayName);
       
       if (result.success) {
+        // Mark as first-time user for welcome screen
+        setIsFirstTimeUser(true);
         // User will be automatically set via auth state change listener
         return { success: true };
       } else {
@@ -260,6 +263,13 @@ export const AuthProvider = ({ children }) => {
     return !!user;
   };
 
+  /**
+   * Clear first-time user flag (after welcome screen is shown)
+   */
+  const clearFirstTimeUser = () => {
+    setIsFirstTimeUser(false);
+  };
+
   // Initialize auth state listener and load persisted data
   useEffect(() => {
     let unsubscribe;
@@ -296,12 +306,14 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     initializing,
+    isFirstTimeUser,
     signUp,
     signIn,
     signOut,
     refreshUser,
     updateProfile,
     sendPasswordReset,
+    clearFirstTimeUser,
     isAuthenticated: checkAuthenticated
   };
 
