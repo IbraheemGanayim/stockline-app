@@ -129,17 +129,14 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        bounces={false}
       >
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        >
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
@@ -259,7 +256,6 @@ const SignupScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
 
       {/* Success Animation */}
       <SuccessAnimation
@@ -285,7 +281,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingTop: 0,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
