@@ -4,7 +4,7 @@
  * @author Ibraheem Ganayim
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -46,19 +46,33 @@ const LoginScreen = ({ navigation }) => {
   const [generalError, setGeneralError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Validation handlers - using useRef to prevent infinite loops
   const handleEmailValidation = useCallback((result) => {
     setValidationStates(prev => ({ ...prev, email: result }));
-    // Clear general error when user starts typing
-    setGeneralError('');
   }, []);
 
   const handlePasswordValidation = useCallback((result) => {
     setValidationStates(prev => ({ ...prev, password: result }));
-    // Clear general error when user starts typing
-    setGeneralError('');
   }, []);
+
+  // Handle input changes - clear errors when user types
+  const handleEmailChange = useCallback((value) => {
+    setFormData(prev => ({ ...prev, email: value }));
+    // Clear errors when user starts typing
+    if (generalError) {
+      setGeneralError('');
+    }
+  }, [generalError]);
+
+  const handlePasswordChange = useCallback((value) => {
+    setFormData(prev => ({ ...prev, password: value }));
+    // Clear errors when user starts typing
+    if (generalError) {
+      setGeneralError('');
+    }
+  }, [generalError]);
 
   // Simple password validator for login (just check if not empty) - memoized
   const validatePassword = useMemo(() => (password) => {
@@ -81,25 +95,33 @@ const LoginScreen = ({ navigation }) => {
     setAttemptedSubmit(true);
     
     if (!isFormValid) {
+      // Show helpful validation message
+      setGeneralError('📝 Please rewrite your email and password correctly in the fields above.');
       return;
     }
 
     try {
-      setGeneralError('');
+      setGeneralError(''); // Clear any previous errors
+      setIsSigningIn(true);
+      
       const result = await signIn(formData.email.trim(), formData.password);
+      
+      // Always stop loading first
+      setIsSigningIn(false);
 
       if (result.success) {
         // Show success animation
         setShowSuccess(true);
         // Navigation will be handled by auth context after animation
       } else {
-        // Show friendly error message
+        // Show friendly error message IMMEDIATELY on the same screen
         const friendlyError = getFirebaseErrorMessage(result.error);
         setGeneralError(friendlyError);
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setGeneralError('Something unexpected happened. Please try again!');
+      setIsSigningIn(false); // Stop loading on error
+      console.log('⚠️ Login attempt failed:', error.message || error);
+      setGeneralError('🤷 Something unexpected happened. Please rewrite your email and password, then try again. Contact support if the problem continues.');
     }
   };
 
@@ -147,39 +169,45 @@ const LoginScreen = ({ navigation }) => {
 
         {/* Form Section */}
         <View style={styles.formContainer}> 
-          <ValidationInput
-            label="Email"
-            value={formData.email}
-            onChangeText={(value) => setFormData(prev => ({ ...prev, email: value }))}
-            onValidationChange={handleEmailValidation}
-            validator={validateEmail}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          <View style={styles.inputWrapper}>
+            <ValidationInput
+              label="Email"
+              value={formData.email}
+              onChangeText={handleEmailChange}
+              onValidationChange={handleEmailValidation}
+              validator={validateEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
 
-          <ValidationInput
-            label="Password"
-            value={formData.password}
-            onChangeText={(value) => setFormData(prev => ({ ...prev, password: value }))}
-            onValidationChange={handlePasswordValidation}
-            validator={validatePassword}
-            placeholder="Enter your password"
-            secureTextEntry={true}
-          />
+          <View style={styles.inputWrapper}>
+            <ValidationInput
+              label="Password"
+              value={formData.password}
+              onChangeText={handlePasswordChange}
+              onValidationChange={handlePasswordValidation}
+              validator={validatePassword}
+              placeholder="Enter your password"
+              secureTextEntry={true}
+            />
+          </View>
 
           {generalError ? (
             <View style={styles.errorContainer}>
-              <Ionicons name="alert-circle" size={16} color={theme.colors.stock.loss} />
+              <View style={styles.errorIconContainer}>
+                <Ionicons name="information-circle" size={20} color="#F59E0B" />
+              </View>
               <Text style={styles.errorText}>{generalError}</Text>
             </View>
           ) : null}
 
           <PrimaryButton
-            title={loading ? 'Signing in...' : 'Sign In'}
+            title={isSigningIn ? 'Signing you in...' : 'Sign In'}
             onPress={handleLogin}
-            disabled={loading || (attemptedSubmit && !isFormValid)}
+            disabled={isSigningIn || (attemptedSubmit && !isFormValid)}
             style={[
               styles.continueButton,
               (!isFormValid && attemptedSubmit) && styles.disabledButton
@@ -242,13 +270,15 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    width: '100%',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    width: '100%',
   },
   header: {
     alignItems: 'center',
@@ -303,6 +333,12 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingTop: 10,
+    width: '100%',
+  },
+  inputWrapper: {
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   continueButton: {
     marginTop: 24,
@@ -312,19 +348,32 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 12,
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFBEB',
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#FDE68A',
+    shadowColor: '#F59E0B',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  errorIconContainer: {
+    marginRight: 12,
+    marginTop: 2,
   },
   errorText: {
-    fontSize: 14,
-    color: '#DC2626',
-    marginLeft: 8,
+    fontSize: 15,
+    color: '#92400E',
     flex: 1,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   dividerContainer: {
     flexDirection: 'row',

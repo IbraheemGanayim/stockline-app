@@ -95,13 +95,26 @@ export const registerUser = async (email, password, displayName) => {
       }
     };
   } catch (error) {
-    console.error('❌ Registration error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
+    // Define which errors are expected user interactions (not system errors)
+    const expectedUserErrors = [
+      'auth/email-already-in-use',
+      'auth/weak-password',
+      'auth/invalid-email',
+      'auth/operation-not-allowed'
+    ];
+    
+    // Only log as error if it's a system/network issue, not user input issues
+    if (expectedUserErrors.includes(error.code)) {
+      console.log(`📝 Registration failed: ${error.code}`);
+    } else {
+      console.error('❌ Registration system error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+    }
     
     return { 
       success: false, 
-      error: getErrorMessage(error.code) 
+      error: error.code || error.message || 'auth/unknown-error'
     };
   }
 };
@@ -187,13 +200,28 @@ export const loginUser = async (email, password) => {
       }
     };
   } catch (error) {
-    console.error('❌ Login error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
+    // Define which errors are expected user interactions (not system errors)
+    const expectedUserErrors = [
+      'auth/invalid-credential',
+      'auth/user-not-found',
+      'auth/wrong-password',
+      'auth/invalid-email',
+      'auth/user-disabled',
+      'auth/too-many-requests'
+    ];
+    
+    // Only log as error if it's a system/network issue, not user credential issues
+    if (expectedUserErrors.includes(error.code)) {
+      console.log(`🔐 Authentication failed: ${error.code}`);
+    } else {
+      console.error('❌ Login system error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+    }
     
     return { 
       success: false, 
-      error: getErrorMessage(error.code) 
+      error: error.code || error.message || 'auth/unknown-error'
     };
   }
 };
@@ -213,7 +241,7 @@ export const logoutUser = async () => {
     console.error('Logout error:', error);
     return { 
       success: false, 
-      error: getErrorMessage(error.code) 
+      error: error.code || error.message || 'auth/unknown-error'
     };
   }
 };
@@ -234,7 +262,7 @@ export const resetPassword = async (email) => {
     console.error('Password reset error:', error);
     return { 
       success: false, 
-      error: getErrorMessage(error.code) 
+      error: error.code || error.message || 'auth/unknown-error'
     };
   }
 };
@@ -345,62 +373,9 @@ export const updateUserProfile = async (profileData) => {
     console.error('Update profile error:', error);
     return { 
       success: false, 
-      error: getErrorMessage(error.code) 
+      error: error.code || error.message || 'auth/unknown-error'
     };
   }
 };
 
-/**
- * Convert Firebase error codes to user-friendly messages
- * Enhanced for Firebase Auth v9+ modular SDK
- * @param {string} errorCode - Firebase error code
- * @returns {string} User-friendly error message
- */
-const getErrorMessage = (errorCode) => {
-  switch (errorCode) {
-    // Authentication errors
-    case 'auth/user-not-found':
-      return 'No account found with this email address.';
-    case 'auth/wrong-password':
-      return 'Incorrect password. Please try again.';
-    case 'auth/invalid-credential':
-      return 'Invalid email or password. Please check your credentials and try again.';
-    case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
-    case 'auth/weak-password':
-      return 'Password should be at least 6 characters long.';
-    case 'auth/invalid-email':
-      return 'Please enter a valid email address.';
-    case 'auth/user-disabled':
-      return 'This account has been disabled.';
-    case 'auth/too-many-requests':
-      return 'Too many failed attempts. Please try again later.';
-    case 'auth/operation-not-allowed':
-      return 'Email/password sign-in is not enabled. Please contact support.';
-    
-    // Network and configuration errors
-    case 'auth/network-request-failed':
-      return 'Network error. Please check your internet connection and try again.';
-    case 'auth/app-deleted':
-      return 'Firebase project configuration error. Please contact support.';
-    case 'auth/invalid-api-key':
-      return 'Firebase configuration error. Please contact support.';
-    case 'auth/project-not-found':
-      return 'Firebase project not found. Please contact support.';
-    case 'auth/quota-exceeded':
-      return 'Service temporarily unavailable. Please try again later.';
-    
-    // Account verification errors
-    case 'auth/email-already-verified':
-      return 'Email is already verified.';
-    case 'auth/expired-action-code':
-      return 'Verification link has expired. Please request a new one.';
-    case 'auth/invalid-action-code':
-      return 'Invalid verification link. Please request a new one.';
-    
-    // Generic fallback
-    default:
-      console.warn('Unhandled Firebase Auth error:', errorCode);
-      return 'An unexpected error occurred. Please try again.';
-  }
-};
+

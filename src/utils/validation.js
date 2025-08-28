@@ -125,24 +125,45 @@ export const validateDisplayName = (displayName) => {
 
 /**
  * Get user-friendly Firebase error messages
- * @param {string} errorCode - Firebase error code
+ * @param {string} errorCode - Firebase error code or error object
  * @returns {string} Human-readable error message
  */
-export const getFirebaseErrorMessage = (errorCode) => {
+export const getFirebaseErrorMessage = (error) => {
+  // Handle both error objects and error codes
+  const errorCode = typeof error === 'string' ? error : error?.code || error;
+  
   const errorMessages = {
-    'auth/user-not-found': 'Hmm, we can\'t find an account with that email. Double-check or sign up!',
-    'auth/wrong-password': 'Oops! That password isn\'t quite right. Try again?',
-    'auth/email-already-in-use': 'This email is already registered. Try signing in instead!',
-    'auth/weak-password': 'Let\'s make that password stronger for better security',
-    'auth/invalid-email': 'That email doesn\'t look quite right. Can you check it?',
-    'auth/user-disabled': 'This account has been temporarily disabled. Contact support if you need help.',
-    'auth/too-many-requests': 'Whoa there! Too many attempts. Take a short break and try again.',
-    'auth/network-request-failed': 'Connection trouble! Check your internet and try again.',
-    'auth/operation-not-allowed': 'Sign up isn\'t available right now. Try again in a moment.',
-    'auth/invalid-credential': 'Something\'s not right with those credentials. Please try again.',
-    'auth/user-token-expired': 'Your session expired. Please sign in again.',
-    'auth/requires-recent-login': 'For security, please sign in again to continue.',
+    // Login credential errors - more friendly and actionable
+    'auth/user-not-found': '🤔 We don\'t recognize that email address. Please rewrite your email or create a new account!',
+    'auth/wrong-password': '🔑 That password doesn\'t match our records. Please rewrite your password and try again!',
+    'auth/invalid-credential': '🔐 Incorrect email or password. Please rewrite your credentials and try again.',
+    'auth/invalid-email': '📧 That email format doesn\'t look right. Please rewrite your email address correctly.',
+    
+    // Account status errors
+    'auth/user-disabled': '⚠️ This account has been temporarily disabled. Please contact our support team for help.',
+    'auth/email-already-in-use': '✉️ This email is already registered. Try signing in instead, or use a different email!',
+    
+    // Security and rate limiting
+    'auth/too-many-requests': '⏱️ Slow down there! Too many attempts. Please wait a few minutes and try again.',
+    'auth/user-token-expired': '⌛ Your session has expired. Please sign in again to continue.',
+    'auth/requires-recent-login': '🔒 For your security, please sign in again to continue.',
+    
+    // Password strength
+    'auth/weak-password': '💪 Let\'s make that password stronger for better security (at least 6 characters).',
+    
+    // Network and technical errors
+    'auth/network-request-failed': '📡 Having trouble connecting. Please check your internet and try again.',
+    'auth/operation-not-allowed': '🚫 This sign-in method isn\'t available right now. Please try again later.',
+    'auth/app-deleted': '⚙️ Something\'s wrong on our end. Please contact support.',
+    'auth/invalid-api-key': '⚙️ Configuration issue detected. Please contact support.',
+    'auth/project-not-found': '⚙️ Service configuration error. Please contact support.',
+    'auth/quota-exceeded': '📊 Our service is temporarily busy. Please try again in a few minutes.',
+    
+    // Verification errors
+    'auth/email-already-verified': '✅ Your email is already verified!',
+    'auth/expired-action-code': '⏰ That verification link has expired. Please request a new one.',
+    'auth/invalid-action-code': '🔗 That verification link isn\'t valid. Please request a new one.',
   };
   
-  return errorMessages[errorCode] || 'Something unexpected happened. Please try again!';
+  return errorMessages[errorCode] || '🤷 Something unexpected happened. Please rewrite your email and password, then try again. Contact support if the problem continues.';
 };
