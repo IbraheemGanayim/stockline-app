@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
   },
   inputsContainer: {
     paddingHorizontal: 24,
-    marginBottom: 16,
+    marginBottom: 50,
     flexShrink: 0,
   },
   stockInput: {
@@ -934,10 +934,12 @@ const styles = StyleSheet.create({
   },
   numpadContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
+    paddingVertical: 20,
     justifyContent: 'center',
-    paddingTop: 12,
     minHeight: 0,
+    marginTop: 25,
+    marginBottom: 80,
   },
   numpadGrid: {
     width: '100%',
@@ -947,8 +949,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: 30,
-    marginBottom: 20,
+    paddingHorizontal: 35,
+    marginBottom: 15,
   },
   numpadButton: {
     width: 75,
