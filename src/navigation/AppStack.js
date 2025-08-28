@@ -25,6 +25,8 @@ import StockDetailsScreen from '../screens/StockDetailsScreen';
 import AccountScreen from '../screens/AccountScreen';
 import FAQScreen from '../screens/FAQScreen';
 import LanguageScreen from '../screens/LanguageScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import { FirstTimeUserWrapper } from '../components';
 import { theme } from '../theme';
 
 const Stack = createStackNavigator();
@@ -192,7 +194,8 @@ const TabNavigator = () => {
  */
 const AppStack = () => {
   return (
-    <Stack.Navigator
+    <FirstTimeUserWrapper>
+      <Stack.Navigator
       screenOptions={{
         headerStyle: {
           backgroundColor: '#FFFFFF',
@@ -285,7 +288,19 @@ const AppStack = () => {
           presentation: 'card'
         }}
       />
-    </Stack.Navigator>
+      
+      {/* Welcome Screen - First-time user onboarding */}
+      <Stack.Screen
+        name="Welcome"
+        component={WelcomeScreen}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+          gestureEnabled: false
+        }}
+      />
+      </Stack.Navigator>
+    </FirstTimeUserWrapper>
   );
 };
 

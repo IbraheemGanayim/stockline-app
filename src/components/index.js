@@ -14,3 +14,4 @@ export { default as SectionHeader } from './SectionHeader';
 export { default as ValidationInput } from './ValidationInput';
 export { default as SuccessAnimation } from './SuccessAnimation';
 export { default as StockSearchModal } from './StockSearchModal';
+export { default as FirstTimeUserWrapper } from './FirstTimeUserWrapper';
