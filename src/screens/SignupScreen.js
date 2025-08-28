@@ -54,6 +54,8 @@ const SignupScreen = ({ navigation }) => {
   const [generalError, setGeneralError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [hasPasswordValue, setHasPasswordValue] = useState(false);
 
   // Validation handlers - using stable callbacks to prevent infinite loops
   const handleDisplayNameValidation = useCallback((result) => {
@@ -186,12 +188,17 @@ const SignupScreen = ({ navigation }) => {
             <ValidationInput
               label="Password"
               value={formData.password}
-              onChangeText={(value) => setFormData(prev => ({ ...prev, password: value }))}
+              onChangeText={(value) => {
+                setFormData(prev => ({ ...prev, password: value }));
+                setHasPasswordValue(value.length > 0);
+              }}
               onValidationChange={handlePasswordValidation}
               validator={validatePassword}
               placeholder="Create a strong password"
               secureTextEntry={true}
-              showRequirements={true}
+              showRequirements={isPasswordFocused || hasPasswordValue}
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => setIsPasswordFocused(false)}
             />
 
             <ValidationInput
