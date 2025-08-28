@@ -122,9 +122,9 @@ const PrimaryButton = ({
     switch (variant) {
       case 'secondary':
       case 'outline':
-        return '#70C7A0';
+        return '#33D49D';
       case 'text':
-        return '#70C7A0';
+        return '#33D49D';
       default: // primary
         return '#FFFFFF';
     }
@@ -187,8 +187,8 @@ const styles = StyleSheet.create({
 
   // Primary variant
   primaryButton: {
-    backgroundColor: '#70C7A0',
-    borderColor: '#70C7A0'
+    backgroundColor: '#33D49D',
+    borderColor: '#33D49D'
   },
   primaryButtonDisabled: {
     backgroundColor: theme.colors.neutral[300],
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   // Outline variant
   outlineButton: {
     backgroundColor: 'transparent',
-    borderColor: '#70C7A0'
+    borderColor: '#33D49D'
   },
   outlineButtonDisabled: {
     backgroundColor: 'transparent',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
 
   // Outline text
   outlineText: {
-    color: '#70C7A0'
+    color: '#33D49D'
   },
   outlineTextDisabled: {
     color: theme.colors.neutral[400]
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
 
   // Text button text
   textButtonText: {
-    color: '#70C7A0'
+    color: '#33D49D'
   },
   textButtonTextDisabled: {
     color: theme.colors.neutral[400]
