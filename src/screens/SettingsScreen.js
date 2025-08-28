@@ -16,10 +16,10 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, PrimaryButton, FormInput } from '../components';
+import { Screen } from '../components';
 import { useAuthUser } from '../hooks';
 import { useAuth } from '../contexts/AuthProvider';
-import { updateUserProfile } from '../services/db';
+
 import { resetPassword } from '../services/auth';
 import { theme } from '../theme';
 
@@ -28,60 +28,15 @@ import { theme } from '../theme';
  * @param {Object} navigation - React Navigation object
  */
 const SettingsScreen = ({ navigation }) => {
-  const { user, refreshUser } = useAuthUser();
+  const { user } = useAuthUser();
   const { signOut } = useAuth();
 
-  // Profile edit state
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [profileLoading, setProfileLoading] = useState(false);
+
 
   // Password reset state
   const [resetLoading, setResetLoading] = useState(false);
 
-  /**
-   * Handle profile update
-   */
-  const handleUpdateProfile = async () => {
-    if (!displayName.trim()) {
-      Alert.alert('Error', 'Display name cannot be empty');
-      return;
-    }
 
-    if (displayName.trim() === user?.displayName) {
-      setIsEditingProfile(false);
-      return;
-    }
-
-    setProfileLoading(true);
-
-    try {
-      const result = await updateUserProfile(user.uid, {
-        displayName: displayName.trim()
-      });
-
-      if (result.success) {
-        await refreshUser();
-        setIsEditingProfile(false);
-        Alert.alert('Success', 'Profile updated successfully');
-      } else {
-        Alert.alert('Error', result.error || 'Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Profile update error:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  /**
-   * Cancel profile editing
-   */
-  const handleCancelEdit = () => {
-    setDisplayName(user?.displayName || '');
-    setIsEditingProfile(false);
-  };
 
   /**
    * Handle password reset
@@ -231,7 +186,7 @@ const SettingsScreen = ({ navigation }) => {
   );
 
   /**
-   * Render profile section
+   * Render profile section (read-only)
    * @returns {JSX.Element} Profile section component
    */
   const renderProfileSection = () => (
@@ -254,46 +209,7 @@ const SettingsScreen = ({ navigation }) => {
               {user?.email}
             </Text>
           </View>
-          {!isEditingProfile && (
-            <TouchableOpacity 
-              style={styles.editButton}
-              onPress={() => setIsEditingProfile(true)}
-            >
-              <Ionicons 
-                name="pencil" 
-                size={20} 
-                color={theme.colors.primary.main} 
-              />
-            </TouchableOpacity>
-          )}
         </View>
-
-        {isEditingProfile && (
-          <View style={styles.editForm}>
-            <FormInput
-              value={displayName}
-              onChangeText={setDisplayName}
-              placeholder="Display Name"
-              style={styles.editInput}
-            />
-            <View style={styles.editActions}>
-              <PrimaryButton
-                title="Cancel"
-                onPress={handleCancelEdit}
-                variant="text"
-                size="small"
-                style={styles.editAction}
-              />
-              <PrimaryButton
-                title="Save"
-                onPress={handleUpdateProfile}
-                loading={profileLoading}
-                size="small"
-                style={styles.editAction}
-              />
-            </View>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -421,26 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280'
   },
-  editButton: {
-    padding: theme.spacing.sm
-  },
-  editForm: {
-    marginTop: theme.spacing.md,
-    paddingTop: theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light
-  },
-  editInput: {
-    marginBottom: theme.spacing.md
-  },
-  editActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: theme.spacing.sm
-  },
-  editAction: {
-    paddingHorizontal: theme.spacing.lg
-  },
+
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -12,6 +12,7 @@ import {
   deleteDoc,
   getDoc,
   getDocs,
+  setDoc,
   query,
   where,
   orderBy,
@@ -390,6 +391,32 @@ export const subscribeToAllItems = (callback, limitCount = 50) => {
 };
 
 /**
+ * Get user profile from Firestore
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} User profile data or null
+ */
+export const getUserProfile = async (userId) => {
+  try {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return null;
+    }
+
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      return userSnap.data();
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+};
+
+/**
  * Update user profile data
  * @param {string} userId - ID of the user
  * @param {Object} updates - Profile updates
@@ -397,11 +424,44 @@ export const subscribeToAllItems = (callback, limitCount = 50) => {
  */
 export const updateUserProfile = async (userId, updates) => {
   try {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return {
+        success: false,
+        error: 'Database service not available'
+      };
+    }
+
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      ...updates,
-      updatedAt: serverTimestamp()
-    });
+    
+    // Check if user document exists, if not create it
+    try {
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        // Create user document if it doesn't exist
+        await setDoc(userRef, {
+          uid: userId,
+          ...updates,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        // Update existing document
+        await updateDoc(userRef, {
+          ...updates,
+          updatedAt: serverTimestamp()
+        });
+      }
+    } catch (updateError) {
+      console.error('Error updating user document:', updateError);
+      // Fallback: try to create document if update fails
+      await setDoc(userRef, {
+        uid: userId,
+        ...updates,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
 
     return { success: true };
   } catch (error) {

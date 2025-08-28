@@ -4,20 +4,23 @@
  * @author Ibraheem Ganayim
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
   ScrollView,
   StyleSheet, 
   TouchableOpacity,
-  Alert
+  Alert,
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components';
 import { useAuthUser } from '../hooks';
 import { useAuth } from '../contexts/AuthProvider';
-import { updateUserProfile } from '../services/db';
+import { updateUserProfile, getUserProfile } from '../services/db';
+import { getImageFromFirestore } from '../services/storage';
 import { theme } from '../theme';
 
 /**
@@ -27,6 +30,56 @@ import { theme } from '../theme';
 const ProfileScreen = ({ navigation }) => {
   const { user } = useAuthUser();
   const { signOut } = useAuth();
+  const [actualPhotoData, setActualPhotoData] = useState(null);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+  const [userPhoneNumber, setUserPhoneNumber] = useState('');
+
+  // Load actual photo data when user changes
+  useEffect(() => {
+    const loadPhotoData = async () => {
+      const photoURL = user?.photoURL;
+      if (photoURL && photoURL.startsWith('firestore://')) {
+        setIsLoadingPhoto(true);
+        try {
+          const imageData = await getImageFromFirestore(photoURL);
+          setActualPhotoData(imageData);
+        } catch (error) {
+          console.error('Error loading photo data:', error);
+          setActualPhotoData(null);
+        } finally {
+          setIsLoadingPhoto(false);
+        }
+      } else if (photoURL && photoURL.startsWith('data:image')) {
+        // Already base64 data
+        setActualPhotoData(photoURL);
+      } else if (photoURL && photoURL.startsWith('http')) {
+        // Regular URL, use as-is
+        setActualPhotoData(photoURL);
+      } else {
+        setActualPhotoData(null);
+      }
+    };
+
+    loadPhotoData();
+  }, [user?.photoURL]);
+
+  // Load complete user profile from Firestore (including phone number)
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const firestoreProfile = await getUserProfile(user.uid);
+          if (firestoreProfile && firestoreProfile.phoneNumber) {
+            setUserPhoneNumber(firestoreProfile.phoneNumber);
+          }
+        } catch (error) {
+          console.error('Error loading user profile from Firestore:', error);
+        }
+      }
+    };
+
+    loadUserProfile();
+  }, [user?.uid]);
 
   /**
    * Handle logout with confirmation
@@ -138,10 +191,20 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.profileHeader}>
           <View style={styles.userInfo}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.displayName?.charAt(0)?.toUpperCase() || 
-                 user?.email?.charAt(0)?.toUpperCase() || '?'}
-              </Text>
+              {isLoadingPhoto ? (
+                <ActivityIndicator size="small" color={theme.colors.primary.main} />
+              ) : actualPhotoData ? (
+                <Image 
+                  source={{ uri: actualPhotoData }} 
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {user?.displayName?.charAt(0)?.toUpperCase() || 
+                   user?.email?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              )}
             </View>
             <View style={styles.userDetails}>
               <Text style={styles.userName}>
@@ -150,6 +213,11 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.userEmail}>
                 {user?.email || 'user@example.com'}
               </Text>
+              {userPhoneNumber && (
+                <Text style={styles.userPhone}>
+                  {userPhoneNumber}
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -234,6 +302,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
   },
   avatarText: {
     fontSize: 24,
@@ -252,6 +326,11 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 16,
     color: theme.colors.text.secondary,
+  },
+  userPhone: {
+    fontSize: 14,
+    color: theme.colors.text.tertiary,
+    marginTop: 2,
   },
   inviteCard: {
     backgroundColor: theme.colors.primary.main,

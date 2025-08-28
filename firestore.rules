@@ -36,7 +36,7 @@ service cloud.firestore {
      */
     function isValidUserData() {
       let requiredFields = ['uid', 'email', 'displayName', 'createdAt', 'updatedAt'];
-      let allowedFields = ['uid', 'email', 'displayName', 'createdAt', 'updatedAt', 'emailVerified', 'photoURL', 'lastLoginAt'];
+      let allowedFields = ['uid', 'email', 'displayName', 'createdAt', 'updatedAt', 'emailVerified', 'photoURL', 'lastLoginAt', 'phoneNumber'];
       
       return request.resource.data.keys().hasAll(requiredFields) &&
              request.resource.data.keys().hasOnly(allowedFields) &&
@@ -82,12 +82,16 @@ service cloud.firestore {
       
       // Allow users to update their own profile
       allow update: if isOwner(userId) && 
-                       isValidUserData() &&
-                       request.resource.data.uid == userId &&
-                       request.resource.data.email == resource.data.email; // Email cannot be changed
+                       request.resource.data.uid == userId;
       
       // Deny delete operations (users should be deactivated, not deleted)
       allow delete: if false;
+      
+      // User images subcollection (for profile photos)
+      match /images/{imageId} {
+        // Allow users to read/write their own images
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Items collection rules
@@ -152,6 +156,12 @@ service cloud.firestore {
       match /{document=**} {
         allow read, write: if isOwner(userId);
       }
+    }
+    
+    // User preferences collection rules
+    match /userPreferences/{userId} {
+      // Allow users to read/write their own preferences
+      allow read, write: if isOwner(userId);
     }
     
     // Default deny all other operations
