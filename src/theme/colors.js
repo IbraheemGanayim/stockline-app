@@ -5,21 +5,21 @@
  */
 
 export const colors = {
-  // Primary colors - Stockline green theme
+  // Primary colors - Stockline green theme (exact #33D49D)
   primary: {
-    main: '#70C7A0',
-    light: '#8DD1B3',
-    dark: '#5BB088',
-    50: '#F0F9F5',
-    100: '#D4F1E5',
-    200: '#A8E2CB',
-    300: '#7DD4B1',
-    400: '#70C7A0',
-    500: '#5BB088',
-    600: '#4A9970',
-    700: '#398257',
-    800: '#286B3F',
-    900: '#175427'
+    main: '#33D49D',
+    light: '#5DDBB0',
+    dark: '#2BC08A',
+    50: '#F0FDF9',
+    100: '#DCFCE7',
+    200: '#BBF7D0',
+    300: '#86EFAC',
+    400: '#4ADE80',
+    500: '#33D49D',
+    600: '#2BC08A',
+    700: '#16A34A',
+    800: '#15803D',
+    900: '#14532D'
   },
 
   // Stock colors for gains/losses

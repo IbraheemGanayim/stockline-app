@@ -16,7 +16,7 @@ import {
   ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ValidationInput, SuccessAnimation, PrimaryButton } from '../components';
+import { ValidationInput, SuccessAnimation, PrimaryButton, StocklineLogo, BackgroundElements } from '../components';
 import { useAuth } from '../contexts/AuthProvider';
 import { 
   validateEmail, 
@@ -129,6 +129,7 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <BackgroundElements />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -147,9 +148,7 @@ const SignupScreen = ({ navigation }) => {
             </TouchableOpacity>
             
             <View style={styles.logoContainer}>
-              <View style={styles.logoIcon}>
-                <View style={styles.logoShape} />
-              </View>
+              <StocklineLogo size={80} color="#33D49D" />
             </View>
             
             <Text style={styles.title}>Join Stockline</Text>
@@ -305,34 +304,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#70C7A0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: '#70C7A0',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  logoShape: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    transform: [{ rotate: '45deg' }],
-  },
+
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#4B5563', // Dark grey
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -344,7 +320,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   highlightText: {
-    color: '#70C7A0',
+    color: '#33D49D',
     fontWeight: '600',
   },
   formContainer: {
@@ -417,7 +393,7 @@ const styles = StyleSheet.create({
   },
   signInText: {
     fontSize: 16,
-    color: '#70C7A0',
+    color: '#33D49D',
     fontWeight: '600',
   },
 });

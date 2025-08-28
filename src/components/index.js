@@ -15,3 +15,5 @@ export { default as ValidationInput } from './ValidationInput';
 export { default as SuccessAnimation } from './SuccessAnimation';
 export { default as StockSearchModal } from './StockSearchModal';
 export { default as FirstTimeUserWrapper } from './FirstTimeUserWrapper';
+export { default as StocklineLogo } from './StocklineLogo';
+export { default as BackgroundElements } from './BackgroundElements';

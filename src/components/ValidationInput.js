@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.text.primary,
+    color: '#4B5563', // Dark grey
     marginBottom: 8,
   },
   inputContainer: {
