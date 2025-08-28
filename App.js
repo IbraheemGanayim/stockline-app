@@ -18,6 +18,7 @@ import { LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './src/contexts/AuthProvider';
+import { ThemeProvider } from './src/contexts/ThemeProvider';
 import { RootNavigator } from './src/navigation';
 
 // Override console methods to filter Firebase WebChannel warnings
@@ -70,9 +71,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

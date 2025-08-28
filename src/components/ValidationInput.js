@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeProvider';
 
 const ValidationInput = ({
   label,
@@ -33,6 +34,7 @@ const ValidationInput = ({
   onBlur,
   ...props
 }) => {
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [validationResult, setValidationResult] = useState({ 
@@ -127,23 +129,25 @@ const ValidationInput = ({
 
   return (
     <View style={[styles.container, style]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: colors.textPrimary }]}>{label}</Text>}
       
       <View 
         style={[
           getInputContainerStyle(),
-          { 
+          {
+            backgroundColor: colors.inputBackground,
+            borderColor: isFocused ? colors.buttonPrimary : colors.border,
             width: '100%',
             maxWidth: '100%'
           }
         ]}
       >
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.textPrimary }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={theme.colors.text.tertiary}
+          placeholderTextColor={colors.textSecondary}
           secureTextEntry={secureTextEntry && !showPassword}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}

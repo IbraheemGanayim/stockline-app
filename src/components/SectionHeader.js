@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
 
 const SectionHeader = ({ 
@@ -16,17 +17,19 @@ const SectionHeader = ({
   showIndicator = false,
   style 
 }) => {
+  const { colors } = useTheme();
+  
   return (
     <View style={[styles.container, style]}>
       <View style={styles.titleContainer}>
-        {showIndicator && <View style={styles.indicator} />}
-        <Text style={styles.title}>{title}</Text>
+        {showIndicator && <View style={[styles.indicator, { backgroundColor: colors.buttonPrimary }]} />}
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       </View>
       
       {actionText && onActionPress && (
         <TouchableOpacity style={styles.actionButton} onPress={onActionPress}>
-          <Text style={styles.actionText}>{actionText}</Text>
-          <Ionicons name="chevron-forward" size={16} color={theme.colors.text.tertiary} />
+          <Text style={[styles.actionText, { color: colors.textSecondary }]}>{actionText}</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
       )}
     </View>
@@ -48,14 +51,14 @@ const styles = StyleSheet.create({
   indicator: {
     width: 4,
     height: 16,
-    backgroundColor: theme.colors.primary.main,
+    // backgroundColor is now dynamic from theme
     borderRadius: 2,
     marginRight: 8,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
   },
   actionButton: {
     flexDirection: 'row',
@@ -63,7 +66,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: theme.colors.text.tertiary,
+    // color is now dynamic from theme
     marginRight: 4,
   },
 });

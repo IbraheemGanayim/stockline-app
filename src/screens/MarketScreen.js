@@ -22,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Screen, SectionHeader } from '../components';
 import { useWatchlist } from '../hooks';
+import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
 
 /**
@@ -213,6 +214,7 @@ const SECTORS = ['All', 'Technology', 'Consumer Discretionary', 'Communication S
  */
 const MarketScreen = ({ navigation }) => {
   console.log('MarketScreen rendering...');
+  const { colors } = useTheme();
   
   const { watchlist = [], addStock, removeStock } = useWatchlist();
   const [stocks, setStocks] = useState(MARKET_STOCKS);
@@ -364,21 +366,21 @@ const MarketScreen = ({ navigation }) => {
   // Stock card component
   const StockCard = ({ stock, isInWatchlist }) => (
     <TouchableOpacity
-      style={styles.stockCard}
+      style={[styles.stockCard, { backgroundColor: colors.cardBackground }]}
       onPress={() => handleStockPress(stock)}
       activeOpacity={0.7}
     >
       <View style={styles.stockLeft}>
         <CompanyIcon ticker={stock.ticker} size={48} />
         <View style={styles.stockInfo}>
-          <Text style={styles.stockTicker}>{stock.ticker}</Text>
-          <Text style={styles.stockName} numberOfLines={1}>{stock.companyName}</Text>
-          <Text style={styles.stockSector}>{stock.sector}</Text>
+          <Text style={[styles.stockTicker, { color: colors.textPrimary }]}>{stock.ticker}</Text>
+          <Text style={[styles.stockName, { color: colors.textSecondary }]} numberOfLines={1}>{stock.companyName}</Text>
+          <Text style={[styles.stockSector, { color: colors.textSecondary }]}>{stock.sector}</Text>
         </View>
       </View>
 
       <View style={styles.stockCenter}>
-        <Text style={styles.stockPrice}>${stock.price.toFixed(2)}</Text>
+        <Text style={[styles.stockPrice, { color: colors.textPrimary }]}>${stock.price.toFixed(2)}</Text>
         <View style={[
           styles.changeContainer,
           { backgroundColor: stock.changePercent >= 0 ? theme.colors.stock.gainLight : theme.colors.stock.lossLight }
@@ -410,7 +412,7 @@ const MarketScreen = ({ navigation }) => {
     <Screen 
       padding={false} 
       scrollable={true}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -421,40 +423,42 @@ const MarketScreen = ({ navigation }) => {
       }
     >
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={20} color={theme.colors.text.secondary} style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.cardBackground }]}>
+          <View style={[styles.searchInputContainer, { backgroundColor: colors.inputBackground }]}>
+            <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: colors.textPrimary }]}
               placeholder="Search stocks..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor={theme.colors.text.secondary}
+              placeholderTextColor={colors.textSecondary}
               autoCapitalize="characters"
               autoCorrect={false}
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-                <Ionicons name="close-circle" size={20} color={theme.colors.text.secondary} />
+                <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
         </View>
 
         {/* Sector Filter */}
-        <View style={styles.filterContainer}>
+        <View style={[styles.filterContainer, { backgroundColor: colors.cardBackground }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sectorScroll}>
             {SECTORS.map((sector) => (
               <TouchableOpacity
                 key={sector}
                 style={[
                   styles.sectorButton,
+                  { backgroundColor: colors.inputBackground, borderColor: colors.border },
                   selectedSector === sector && styles.sectorButtonActive
                 ]}
                 onPress={() => setSelectedSector(sector)}
               >
                 <Text style={[
                   styles.sectorText,
+                  { color: selectedSector === sector ? '#FFFFFF' : colors.textPrimary },
                   selectedSector === sector && styles.sectorTextActive
                 ]}>
                   {sector}
@@ -501,9 +505,9 @@ const MarketScreen = ({ navigation }) => {
         <View style={styles.stocksList}>
           {filteredStocks.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <MaterialIcons name="search-off" size={48} color={theme.colors.text.secondary} />
-              <Text style={styles.emptyText}>No stocks found</Text>
-              <Text style={styles.emptySubtext}>
+              <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
+              <Text style={[styles.emptyText, { color: colors.textPrimary }]}>No stocks found</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
                 Try adjusting your search or filter criteria
               </Text>
             </View>
@@ -527,16 +531,16 @@ const MarketScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.background.secondary,
+    // backgroundColor is now dynamic from theme
   },
   searchContainer: {
     padding: 16,
-    backgroundColor: theme.colors.background.primary,
+    // backgroundColor is now dynamic from theme
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.background.secondary,
+    // backgroundColor is now dynamic from theme
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 48,
@@ -547,14 +551,14 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   clearButton: {
     padding: 4,
   },
   filterContainer: {
-    backgroundColor: theme.colors.background.primary,
+    // backgroundColor is now dynamic from theme
     paddingBottom: 16,
   },
   sectorScroll: {
@@ -565,9 +569,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 12,
     borderRadius: 20,
-    backgroundColor: theme.colors.background.secondary,
+    // backgroundColor is now dynamic from theme
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    // borderColor is now dynamic from theme
   },
   sectorButtonActive: {
     backgroundColor: theme.colors.primary.main,
@@ -576,7 +580,7 @@ const styles = StyleSheet.create({
   sectorText: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
   },
   sectorTextActive: {
     color: '#FFFFFF',
@@ -626,7 +630,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     borderRadius: 16,
     marginBottom: 12,
     ...Platform.select({
@@ -679,17 +683,17 @@ const styles = StyleSheet.create({
   stockTicker: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginBottom: 2,
   },
   stockName: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     marginBottom: 2,
   },
   stockSector: {
     fontSize: 11,
-    color: theme.colors.text.tertiary,
+    // color is now dynamic from theme
     fontWeight: '500',
   },
   stockCenter: {
@@ -699,7 +703,7 @@ const styles = StyleSheet.create({
   stockPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginBottom: 4,
   },
   changeContainer: {
@@ -721,13 +725,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     textAlign: 'center',
     paddingHorizontal: 32,
   },
