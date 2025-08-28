@@ -54,30 +54,10 @@ const ValidationInput = ({
     }
   }, [value, validator]); // Removed onValidationChange from dependencies to prevent infinite loops
 
-  // Shake animation for errors
+  // Disabled shake animation to prevent any overflow issues
   const triggerShake = () => {
-    Animated.sequence([
-      Animated.timing(shakeAnimation, { 
-        toValue: 10, 
-        duration: 100, 
-        useNativeDriver: true 
-      }),
-      Animated.timing(shakeAnimation, { 
-        toValue: -10, 
-        duration: 100, 
-        useNativeDriver: true 
-      }),
-      Animated.timing(shakeAnimation, { 
-        toValue: 10, 
-        duration: 100, 
-        useNativeDriver: true 
-      }),
-      Animated.timing(shakeAnimation, { 
-        toValue: 0, 
-        duration: 100, 
-        useNativeDriver: true 
-      }),
-    ]).start();
+    // Animation disabled to prevent screen boundary issues
+    // Visual feedback is provided through color changes instead
   };
 
   // Trigger shake when validation fails
@@ -147,10 +127,13 @@ const ValidationInput = ({
     <View style={[styles.container, style]}>
       {label && <Text style={styles.label}>{label}</Text>}
       
-      <Animated.View 
+      <View 
         style={[
           getInputContainerStyle(),
-          { transform: [{ translateX: shakeAnimation }] }
+          { 
+            width: '100%',
+            maxWidth: '100%'
+          }
         ]}
       >
         <TextInput
@@ -188,7 +171,7 @@ const ValidationInput = ({
           
           {getStatusIcon()}
         </View>
-      </Animated.View>
+      </View>
       
       {/* Validation Message */}
       {validationResult.message && (
@@ -252,6 +235,8 @@ const getStrengthColor = (strength) => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
+    width: '100%',
+    overflow: 'hidden',
   },
   label: {
     fontSize: 14,
@@ -267,8 +252,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
     minHeight: 56,
-    paddingHorizontal: 16,
-    transition: 'all 0.2s ease',
+    paddingHorizontal: 14,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   inputContainerFocused: {
     backgroundColor: '#FFFFFF',
@@ -300,11 +287,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     fontWeight: '400',
     paddingVertical: 16,
+    minWidth: 0, // This prevents flex child from overflowing
   },
   iconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 0, // Prevent icons from being compressed
   },
   passwordToggle: {
     padding: 4,

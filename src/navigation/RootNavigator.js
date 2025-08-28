@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthProvider';
 import { theme } from '../theme';
 
 /**
- * Loading component displayed during authentication initialization
+ * Loading component displayed only during app initialization (not sign-in attempts)
  */
 const LoadingScreen = () => (
   <View style={styles.loadingContainer}>
@@ -29,10 +29,10 @@ const LoadingScreen = () => (
  * Handles switching between authenticated and unauthenticated flows
  */
 const RootNavigator = () => {
-  const { user, initializing, loading } = useAuth();
+  const { user, initializing } = useAuth();
 
-  // Show loading screen during initialization
-  if (initializing || loading) {
+  // Show loading screen only during app initialization, not during sign-in attempts
+  if (initializing) {
     return <LoadingScreen />;
   }
 
