@@ -15,8 +15,11 @@ import {
   Vibration,
   Dimensions,
   ActivityIndicator,
+  Image,
+  Modal,
+  PanResponder,
 } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -26,6 +29,160 @@ import { executeTransaction } from '../services/transactions';
 import { theme } from '../theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+/**
+ * Company icons mapping with fallback support
+ */
+const COMPANY_ICONS = {
+  AAPL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/apple.com',
+    fallback: { type: 'icon', name: 'apple', library: 'FontAwesome5' },
+    color: '#000000',
+    backgroundColor: '#F5F5F7'
+  },
+  MSFT: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/microsoft.com',
+    fallback: { type: 'icon', name: 'microsoft', library: 'FontAwesome5' },
+    color: '#00A1F1',
+    backgroundColor: '#F3F2F1'
+  },
+  GOOGL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/google.com',
+    fallback: { type: 'icon', name: 'google', library: 'FontAwesome5' },
+    color: '#4285F4',
+    backgroundColor: '#F8F9FA'
+  },
+  NFLX: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/netflix.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#E50914',
+    backgroundColor: '#000000'
+  },
+  TSLA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/tesla.com',
+    fallback: { type: 'text', text: 'T', font: 'bold' },
+    color: '#CC0000',
+    backgroundColor: '#FFFFFF'
+  },
+  AMZN: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/amazon.com',
+    fallback: { type: 'icon', name: 'amazon', library: 'FontAwesome5' },
+    color: '#FF9900',
+    backgroundColor: '#232F3E'
+  },
+};
+
+/**
+ * Predefined amount options for quick selection
+ */
+const AMOUNT_OPTIONS = [10, 25, 50, 100, 250, 500, 1000, 2500];
+
+/**
+ * Available stocks for trading
+ */
+const AVAILABLE_STOCKS = [
+  {
+    ticker: 'AAPL',
+    companyName: 'Apple Inc.',
+    price: 175.84,
+    change: 2.45,
+    changePercent: 1.41
+  },
+  {
+    ticker: 'NFLX',
+    companyName: 'Netflix, Inc',
+    price: 388.91,
+    change: -5.21,
+    changePercent: -1.32
+  },
+  {
+    ticker: 'MSFT',
+    companyName: 'Microsoft Corporation',
+    price: 56.01,
+    change: 1.45,
+    changePercent: 2.66
+  },
+  {
+    ticker: 'GOOGL',
+    companyName: 'Alphabet Inc.',
+    price: 2845.32,
+    change: 15.67,
+    changePercent: 0.55
+  },
+  {
+    ticker: 'TSLA',
+    companyName: 'Tesla, Inc.',
+    price: 248.87,
+    change: -8.34,
+    changePercent: -3.24
+  }
+];
+
+/**
+ * Company Icon component with image and fallback support
+ */
+const CompanyIcon = ({ ticker, size = 40 }) => {
+  const [imageError, setImageError] = useState(false);
+  const iconConfig = COMPANY_ICONS[ticker];
+  
+  if (!iconConfig || imageError) {
+    const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
+    
+    return (
+      <View style={[
+        styles.stockIcon,
+        { 
+          width: size, 
+          height: size,
+          backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+        }
+      ]}>
+        {fallback.type === 'icon' ? (
+          <FontAwesome5 
+            name={fallback.name} 
+            size={size * 0.5} 
+            color={iconConfig?.color || theme.colors.primary.main} 
+          />
+        ) : (
+          <Text style={[
+            styles.stockIconText,
+            { 
+              fontSize: size * 0.4,
+              color: iconConfig?.color || '#FFFFFF',
+              fontWeight: fallback.font === 'bold' ? '700' : '600'
+            }
+          ]}>
+            {fallback.text || ticker[0]}
+          </Text>
+        )}
+      </View>
+    );
+  }
+
+  return (
+    <View style={[
+      styles.stockIcon,
+      { 
+        width: size, 
+        height: size,
+        backgroundColor: iconConfig.backgroundColor 
+      }
+    ]}>
+      <Image
+        source={{ uri: iconConfig.source }}
+        style={[styles.stockIconImage, { width: size * 0.7, height: size * 0.7 }]}
+        onError={() => setImageError(true)}
+        resizeMode="contain"
+      />
+    </View>
+  );
+};
 
 const ExchangeScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -38,19 +195,16 @@ const ExchangeScreen = ({ navigation, route }) => {
   
   const [activeTab, setActiveTab] = useState('buy'); // 'buy' or 'sell'
   const [selectedStockData, setSelectedStockData] = useState(
-    selectedStock || {
-      ticker: 'AAPL',
-      companyName: 'Apple Inc.',
-      price: 175.84,
-      logo: '🍎',
-      color: '#000000'
-    }
+    selectedStock || AVAILABLE_STOCKS[0]
   );
   const [amount, setAmount] = useState('0');
   const [shares, setShares] = useState('1');
   const [activeField, setActiveField] = useState('amount'); // 'amount' or 'shares'
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showAmountSelector, setShowAmountSelector] = useState(false);
+  const [showStockSelector, setShowStockSelector] = useState(false);
+  const [sliderValue, setSliderValue] = useState(15); // For amount selector slider
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -216,20 +370,37 @@ const ExchangeScreen = ({ navigation, route }) => {
       style={[styles.stockInput, isActive && styles.stockInputActive]}
       onPress={onPress}
     >
-      <View style={styles.stockLeft}>
+      <TouchableOpacity 
+        style={styles.stockLeft}
+        onPress={() => {
+          if (label === 'Amount') {
+            setShowAmountSelector(true);
+          }
+        }}
+        activeOpacity={label === 'Amount' ? 0.7 : 1}
+        disabled={label !== 'Amount'}
+      >
         <Text style={styles.inputLabel}>{label}</Text>
         <Text style={styles.amountText}>
           {label === 'Amount' ? `$${value}` : `${value} shares`}
         </Text>
-      </View>
+      </TouchableOpacity>
+      
       <View style={styles.stockRight}>
-        <View style={[styles.stockIcon, { backgroundColor: selectedStockData.color || theme.colors.primary.main }]}>
-          <Text style={styles.stockLogoEmoji}>{selectedStockData.ticker?.[0] || 'S'}</Text>
-        </View>
+        <CompanyIcon ticker={selectedStockData.ticker} size={40} />
         <View style={styles.stockInfo}>
           <Text style={styles.stockSymbol}>{selectedStockData.ticker}</Text>
           <Text style={styles.stockPrice}>${selectedStockData.price?.toFixed(2)}</Text>
         </View>
+        <TouchableOpacity 
+          style={styles.dropdownButton}
+          onPress={() => {
+            setShowStockSelector(true);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+        >
+          <Ionicons name="chevron-down" size={20} color={theme.colors.text.secondary} />
+        </TouchableOpacity>
       </View>
     </Pressable>
   );
@@ -243,6 +414,8 @@ const ExchangeScreen = ({ navigation, route }) => {
       <Text style={[styles.numpadButtonText, textStyle]}>{value}</Text>
     </TouchableOpacity>
   );
+
+
 
   return (
     <View style={[styles.outerContainer, { 
@@ -318,25 +491,40 @@ const ExchangeScreen = ({ navigation, route }) => {
         {/* Numpad */}
         <View style={styles.numpadContainer}>
           <View style={styles.numpadGrid}>
-            <NumpadButton value="1" onPress={handleNumberInput} />
-            <NumpadButton value="2" onPress={handleNumberInput} />
-            <NumpadButton value="3" onPress={handleNumberInput} />
-            <NumpadButton value="4" onPress={handleNumberInput} />
-            <NumpadButton value="5" onPress={handleNumberInput} />
-            <NumpadButton value="6" onPress={handleNumberInput} />
-            <NumpadButton value="7" onPress={handleNumberInput} />
-            <NumpadButton value="8" onPress={handleNumberInput} />
-            <NumpadButton value="9" onPress={handleNumberInput} />
-            <NumpadButton value="." onPress={handleNumberInput} />
-            <NumpadButton value="0" onPress={handleNumberInput} />
-            <TouchableOpacity
-              style={[styles.numpadButton, styles.deleteButton]}
-              onPress={handleDelete}
-              onLongPress={handleClear}
-              activeOpacity={0.3}
-            >
-              <Ionicons name="close" size={24} color={theme.colors.text.primary} />
-            </TouchableOpacity>
+            {/* Row 1: 1, 2, 3 */}
+            <View style={styles.numpadRow}>
+              <NumpadButton value="1" onPress={handleNumberInput} />
+              <NumpadButton value="2" onPress={handleNumberInput} />
+              <NumpadButton value="3" onPress={handleNumberInput} />
+            </View>
+            
+            {/* Row 2: 4, 5, 6 */}
+            <View style={styles.numpadRow}>
+              <NumpadButton value="4" onPress={handleNumberInput} />
+              <NumpadButton value="5" onPress={handleNumberInput} />
+              <NumpadButton value="6" onPress={handleNumberInput} />
+            </View>
+            
+            {/* Row 3: 7, 8, 9 */}
+            <View style={styles.numpadRow}>
+              <NumpadButton value="7" onPress={handleNumberInput} />
+              <NumpadButton value="8" onPress={handleNumberInput} />
+              <NumpadButton value="9" onPress={handleNumberInput} />
+            </View>
+            
+            {/* Row 4: ., 0, delete */}
+            <View style={styles.numpadRow}>
+              <NumpadButton value="." onPress={handleNumberInput} />
+              <NumpadButton value="0" onPress={handleNumberInput} />
+              <TouchableOpacity
+                style={[styles.numpadButton, styles.deleteButton]}
+                onPress={handleDelete}
+                onLongPress={handleClear}
+                activeOpacity={0.3}
+              >
+                <Ionicons name="close" size={24} color={theme.colors.text.primary} />
+              </TouchableOpacity>
+            </View>
           </View>
           </View>
         </View>
@@ -372,6 +560,153 @@ const ExchangeScreen = ({ navigation, route }) => {
             </View>
           </View>
         )}
+
+        {/* Amount Selector Modal */}
+        {showAmountSelector && (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowAmountSelector(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                {/* Header */}
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity onPress={() => setShowAmountSelector(false)}>
+                    <Ionicons name="close" size={24} color={theme.colors.text.primary} />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>Buy</Text>
+                  <View style={{ width: 24 }} />
+                </View>
+
+                {/* Stock Info */}
+                <View style={styles.modalStockInfo}>
+                  <CompanyIcon ticker={selectedStockData.ticker} size={48} />
+                  <View style={styles.modalStockDetails}>
+                    <Text style={styles.modalStockSymbol}>{selectedStockData.ticker}</Text>
+                    <Text style={styles.modalStockName}>{selectedStockData.companyName}</Text>
+                  </View>
+                  <Text style={styles.modalStockPrice}>${selectedStockData.price?.toFixed(2)}</Text>
+                </View>
+
+                {/* Enter Stock Amount Section */}
+                <View style={styles.amountSection}>
+                  <Text style={styles.amountSectionTitle}>Enter a Stock Amount</Text>
+                  <Text style={styles.amountSectionSubtitle}>
+                    Choose the amount of stocks{'\n'}you want to buy
+                  </Text>
+                  
+                  {/* Large Amount Display */}
+                  <View style={styles.largeAmountContainer}>
+                    <Text style={styles.largeAmountNumber}>{sliderValue}</Text>
+                    <Text style={styles.largeAmountValue}>${(sliderValue * selectedStockData.price).toFixed(2)}</Text>
+                  </View>
+
+                  {/* Amount Range Selector */}
+                  <View style={styles.rangeContainer}>
+                    <TouchableOpacity 
+                      style={styles.decrementButton}
+                      onPress={() => {
+                        if (sliderValue > 10) {
+                          setSliderValue(sliderValue - 1);
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.buttonText}>-</Text>
+                    </TouchableOpacity>
+                    
+                    <View style={styles.sliderValueContainer}>
+                      <Text style={styles.sliderValueText}>{sliderValue}</Text>
+                    </View>
+                    
+                    <TouchableOpacity 
+                      style={styles.incrementButton}
+                      onPress={() => {
+                        if (sliderValue < 20) {
+                          setSliderValue(sliderValue + 1);
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.buttonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Continue Button */}
+                <View style={styles.modalFooter}>
+                  <PrimaryButton
+                    title="Continue"
+                    onPress={() => {
+                      setAmount(sliderValue.toString());
+                      setShowAmountSelector(false);
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }}
+                    fullWidth
+                    style={styles.continueButton}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {/* Stock Selector Modal */}
+        <Modal
+          visible={showStockSelector}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowStockSelector(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowStockSelector(false)}>
+                  <Ionicons name="close" size={24} color={theme.colors.text.primary} />
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Select Stock</Text>
+                <View style={{ width: 24 }} />
+              </View>
+
+              <View style={styles.stockListContainer}>
+                {AVAILABLE_STOCKS.map((stock) => {
+                  const isPositive = stock.change >= 0;
+                  return (
+                    <TouchableOpacity
+                      key={stock.ticker}
+                      style={[
+                        styles.stockListItem,
+                        selectedStockData.ticker === stock.ticker && styles.selectedStockItem
+                      ]}
+                      onPress={() => {
+                        setSelectedStockData(stock);
+                        setShowStockSelector(false);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      }}
+                    >
+                      <CompanyIcon ticker={stock.ticker} size={44} />
+                      <View style={styles.stockListInfo}>
+                        <Text style={styles.stockListTicker}>{stock.ticker}</Text>
+                        <Text style={styles.stockListName}>{stock.companyName}</Text>
+                      </View>
+                      <View style={styles.stockListPriceContainer}>
+                        <Text style={styles.stockListPrice}>${stock.price.toFixed(2)}</Text>
+                        <Text style={[
+                          styles.stockListChange,
+                          isPositive ? styles.positiveChange : styles.negativeChange
+                        ]}>
+                          {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </Modal>
     </View>
   );
 };
@@ -472,8 +807,8 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: 'transparent',
     marginVertical: 6,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -485,7 +820,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 6,
-    minHeight: 80,
+    minHeight: 75,
   },
   stockInputActive: {
     borderColor: theme.colors.primary.main,
@@ -495,23 +830,38 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   stockLeft: {
-    flex: 1,
-    marginRight: 16,
+    flex: 3,
+    marginRight: 12,
+    minWidth: 0, // Allow shrinking
+    overflow: 'hidden',
+    paddingVertical: 4,
   },
+
   amountText: {
-    fontSize: Math.min(screenWidth * 0.08, 32),
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.text.primary,
-    letterSpacing: -0.6,
+    letterSpacing: -0.2,
+    flexShrink: 1,
+    numberOfLines: 1,
+    flexWrap: 'wrap',
   },
   stockRight: {
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 0,
+    maxWidth: '50%',
+  },
+
+  stockIconText: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  stockLogoEmoji: {
+    fontSize: 20,
   },
   stockIcon: {
-    width: 40,
-    height: 40,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -525,14 +875,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  stockIconImage: {
+    borderRadius: 8,
+  },
   stockIconText: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#FFFFFF',
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  stockLogoEmoji: {
-    fontSize: 20,
-  },
+
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
@@ -547,9 +897,11 @@ const styles = StyleSheet.create({
   stockInfo: {
     flexDirection: 'column',
     alignItems: 'flex-start',
+    flex: 1,
+    minWidth: 0,
   },
   stockSymbol: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: theme.colors.text.primary,
     marginRight: 6,
@@ -582,40 +934,33 @@ const styles = StyleSheet.create({
   },
   numpadContainer: {
     flex: 1,
-    paddingHorizontal: Math.max(screenWidth * 0.08, 32),
+    paddingHorizontal: 20,
     justifyContent: 'center',
     paddingTop: 12,
     minHeight: 0,
   },
   numpadGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    width: '100%',
     alignItems: 'center',
-    paddingBottom: 16,
+  },
+  numpadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 30,
+    marginBottom: 20,
   },
   numpadButton: {
-    width: (screenWidth - 64 - 32) / 3, // Account for padding and gaps
-    maxWidth: 76,
-    aspectRatio: 1,
-    maxHeight: 64,
+    width: 75,
+    height: 75,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
+    borderRadius: 37.5,
+    backgroundColor: 'transparent',
   },
   numpadButtonText: {
-    fontSize: Math.min(screenWidth * 0.07, 28),
-    fontWeight: '500',
+    fontSize: Math.min(screenWidth * 0.08, 32),
+    fontWeight: '300',
     color: theme.colors.text.primary,
   },
   deleteButton: {
@@ -693,6 +1038,190 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: theme.colors.text.primary,
     marginTop: 16,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingBottom: 34,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
+  modalStockInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  modalStockDetails: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  modalStockSymbol: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  modalStockName: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
+  modalStockPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
+  amountSection: {
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  amountSectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  amountSectionSubtitle: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 40,
+  },
+  largeAmountContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  largeAmountNumber: {
+    fontSize: 80,
+    fontWeight: '800',
+    color: theme.colors.primary.main,
+    lineHeight: 80,
+    marginBottom: 8,
+  },
+  largeAmountValue: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    fontWeight: '500',
+  },
+  rangeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 40,
+  },
+  decrementButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  incrementButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 20,
+  },
+  buttonText: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
+  sliderValueContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderValueText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.primary.main,
+  },
+  modalFooter: {
+    paddingHorizontal: 24,
+  },
+  continueButton: {
+    borderRadius: 16,
+    paddingVertical: 16,
+  },
+  // Stock Selector Styles
+  stockListContainer: {
+    paddingHorizontal: 24,
+    maxHeight: 400,
+  },
+  stockListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 16,
+    backgroundColor: '#F8F9FA',
+  },
+  selectedStockItem: {
+    backgroundColor: theme.colors.primary.light,
+    borderWidth: 2,
+    borderColor: theme.colors.primary.main,
+  },
+  stockListInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  stockListTicker: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  stockListName: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
+  stockListPriceContainer: {
+    alignItems: 'flex-end',
+  },
+  stockListPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  stockListChange: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  positiveChange: {
+    color: theme.colors.stock.gain,
+  },
+  negativeChange: {
+    color: theme.colors.stock.loss,
   },
 });
 
