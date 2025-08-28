@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components';
 import { useAuthUser } from '../hooks';
 import { useAuth } from '../contexts/AuthProvider';
+import { useTheme, THEME_MODES } from '../contexts/ThemeProvider';
 
 import { resetPassword } from '../services/auth';
 import { theme } from '../theme';
@@ -30,13 +31,59 @@ import { theme } from '../theme';
 const SettingsScreen = ({ navigation }) => {
   const { user } = useAuthUser();
   const { signOut } = useAuth();
-
-
+  const { colors, themeMode, setThemeMode, isDark } = useTheme();
 
   // Password reset state
   const [resetLoading, setResetLoading] = useState(false);
 
+  /**
+   * Get theme mode display text
+   * @param {string} mode - Theme mode
+   * @returns {string} Display text for theme mode
+   */
+  const getThemeModeText = (mode) => {
+    switch (mode) {
+      case THEME_MODES.LIGHT:
+        return 'Light Mode';
+      case THEME_MODES.DARK:
+        return 'Dark Mode';
+      case THEME_MODES.SYSTEM:
+        return 'Follow System';
+      default:
+        return 'Follow System';
+    }
+  };
 
+  /**
+   * Handle theme mode selection
+   */
+  const handleThemeSelection = () => {
+    Alert.alert(
+      'Select Theme',
+      'Choose your preferred app theme',
+      [
+        {
+          text: 'Light Mode',
+          onPress: () => setThemeMode(THEME_MODES.LIGHT),
+          style: themeMode === THEME_MODES.LIGHT ? 'default' : 'default'
+        },
+        {
+          text: 'Dark Mode',
+          onPress: () => setThemeMode(THEME_MODES.DARK),
+          style: themeMode === THEME_MODES.DARK ? 'default' : 'default'
+        },
+        {
+          text: 'Follow System',
+          onPress: () => setThemeMode(THEME_MODES.SYSTEM),
+          style: themeMode === THEME_MODES.SYSTEM ? 'default' : 'default'
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
 
   /**
    * Handle password reset
@@ -152,7 +199,7 @@ const SettingsScreen = ({ navigation }) => {
     loading = false 
   }) => (
     <TouchableOpacity 
-      style={styles.settingItem} 
+      style={[styles.settingItem, { backgroundColor: colors.cardBackground, borderColor: colors.border }]} 
       onPress={onPress}
       disabled={loading}
     >
@@ -160,15 +207,15 @@ const SettingsScreen = ({ navigation }) => {
         <Ionicons 
           name={icon} 
           size={24} 
-          color={danger ? theme.colors.error.main : theme.colors.text.secondary} 
+          color={danger ? colors.error : colors.textSecondary} 
           style={styles.settingIcon}
         />
         <View style={styles.settingText}>
-          <Text style={[styles.settingTitle, danger && styles.settingTitleDanger]}>
+          <Text style={[styles.settingTitle, { color: danger ? colors.error : colors.textPrimary }]}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={styles.settingSubtitle}>{subtitle}</Text>
+            <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
           )}
         </View>
       </View>
@@ -176,11 +223,11 @@ const SettingsScreen = ({ navigation }) => {
         <Ionicons 
           name="chevron-forward" 
           size={20} 
-          color={theme.colors.text.tertiary} 
+          color={colors.textSecondary} 
         />
       )}
       {loading && (
-        <ActivityIndicator size="small" color={theme.colors.primary.main} />
+        <ActivityIndicator size="small" color={colors.buttonPrimary} />
       )}
     </TouchableOpacity>
   );
@@ -191,21 +238,21 @@ const SettingsScreen = ({ navigation }) => {
    */
   const renderProfileSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Profile</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Profile</Text>
       
-      <View style={styles.profileCard}>
+      <View style={[styles.profileCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
+          <View style={[styles.avatar, { backgroundColor: colors.buttonPrimary }]}>
             <Text style={styles.avatarText}>
               {user?.displayName?.charAt(0)?.toUpperCase() || 
                user?.email?.charAt(0)?.toUpperCase() || '?'}
             </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>
+            <Text style={[styles.profileName, { color: colors.textPrimary }]}>
               {user?.displayName || 'User'}
             </Text>
-            <Text style={styles.profileEmail}>
+            <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>
               {user?.email}
             </Text>
           </View>
@@ -215,12 +262,29 @@ const SettingsScreen = ({ navigation }) => {
   );
 
   /**
+   * Render theme section
+   * @returns {JSX.Element} Theme section component
+   */
+  const renderThemeSection = () => (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Appearance</Text>
+      
+      <SettingItem
+        icon={isDark ? "moon" : "sunny"}
+        title="Theme"
+        subtitle={getThemeModeText(themeMode)}
+        onPress={handleThemeSelection}
+      />
+    </View>
+  );
+
+  /**
    * Render account section
    * @returns {JSX.Element} Account section component
    */
   const renderAccountSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Account</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Account</Text>
       
       <SettingItem
         icon="key-outline"
@@ -245,7 +309,7 @@ const SettingsScreen = ({ navigation }) => {
    */
   const renderAppInfoSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>About</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>About</Text>
       
       <SettingItem
         icon="information-circle-outline"
@@ -276,6 +340,7 @@ const SettingsScreen = ({ navigation }) => {
     <Screen padding={false} scrollable={true} style={styles.container}>
         <View style={styles.content}>
           {renderProfileSection()}
+          {renderThemeSection()}
           {renderAccountSection()}
           {renderAppInfoSection()}
         </View>
@@ -296,15 +361,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1A1A1A',
     marginBottom: 16
+    // color is now dynamic from theme
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB'
+    borderWidth: 1
+    // backgroundColor and borderColor are now dynamic from theme
   },
   profileHeader: {
     flexDirection: 'row',
@@ -314,10 +378,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#70C7A0',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16
+    // backgroundColor is now dynamic from theme
   },
   avatarText: {
     fontSize: 18,
@@ -330,24 +394,23 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1A1A1A',
     marginBottom: 4
+    // color is now dynamic from theme
   },
   profileEmail: {
-    fontSize: 14,
-    color: '#6B7280'
+    fontSize: 14
+    // color is now dynamic from theme
   },
 
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
     padding: 16,
     marginBottom: 8,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB'
+    borderWidth: 1
+    // backgroundColor and borderColor are now dynamic from theme
   },
   settingContent: {
     flexDirection: 'row',
@@ -362,16 +425,13 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1A1A1A'
-  },
-  settingTitleDanger: {
-    color: '#F44336'
+    fontWeight: '500'
+    // color is now dynamic from theme
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
     marginTop: 4
+    // color is now dynamic from theme
   }
 });
 

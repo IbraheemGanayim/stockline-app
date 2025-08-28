@@ -1,9 +1,38 @@
 /**
- * Color palette based on Stockline stock trading app design
- * Provides consistent color theming throughout the application
+ * Color palette with dark mode and light mode support for Stockline
+ * Provides consistent theme colors throughout the application
  * @author Ibraheem Ganayim
  */
 
+// Light mode theme colors
+export const lightColors = {
+  background: '#FFFFFF',
+  textPrimary: '#2D3748',
+  textSecondary: '#A0AEC0',
+  border: '#E2E8F0',
+  inputBackground: '#FFFFFF',
+  buttonPrimary: '#33D49D',
+  buttonText: '#FFFFFF',
+  success: '#52FFC4',
+  error: '#FFCC93',
+  cardBackground: '#F7FAFC'
+};
+
+// Dark mode theme colors
+export const darkColors = {
+  background: '#1A202C',
+  textPrimary: '#EDF2F7',
+  textSecondary: '#A0AEC0',
+  border: '#718096',
+  inputBackground: '#2D3748',
+  buttonPrimary: '#33D49D',
+  buttonText: '#FFFFFF',
+  success: '#52FFC4',
+  error: '#FFCC93',
+  cardBackground: '#2D3748'
+};
+
+// Original color system - kept for backward compatibility
 export const colors = {
   // Primary colors - Stockline green theme (exact #33D49D)
   primary: {

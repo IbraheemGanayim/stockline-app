@@ -1,5 +1,5 @@
 /**
- * Card component - Reusable card container for list items and content blocks
+ * Card component - Reusable card container for list items and content blocks with theme support
  * Styled according to Stockline design system
  * @author Ibraheem Ganayim
  */
@@ -13,6 +13,7 @@ import {
   StyleSheet 
 } from 'react-native';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeProvider';
 
 /**
  * Card component for displaying item information
@@ -43,12 +44,17 @@ const Card = ({
   actions,
   ...props
 }) => {
+  const { colors } = useTheme();
   const CardComponent = touchable ? TouchableOpacity : View;
   const cardProps = touchable ? { onPress, activeOpacity: 0.7 } : {};
 
   const cardStyle = [
     styles.card,
     styles[`${variant}Card`],
+    {
+      backgroundColor: colors.cardBackground,
+      borderColor: colors.border
+    },
     style
   ];
 
@@ -96,33 +102,33 @@ const Card = ({
       <View style={styles.content}>
         <View style={styles.header}>
           {item?.title && (
-            <Text style={styles.title} numberOfLines={2}>
+            <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
               {item.title}
             </Text>
           )}
           
           {showPrice && item?.price && (
-            <Text style={styles.price}>
+            <Text style={[styles.price, { color: colors.buttonPrimary }]}>
               {formatPrice(item.price)}
             </Text>
           )}
         </View>
 
         {showDescription && item?.description && (
-          <Text style={styles.description} numberOfLines={3}>
+          <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>
             {item.description}
           </Text>
         )}
 
         {showDate && item?.createdAt && (
-          <Text style={styles.date}>
+          <Text style={[styles.date, { color: colors.textSecondary }]}>
             {formatDate(item.createdAt)}
           </Text>
         )}
 
         {item?.category && (
           <View style={styles.categoryContainer}>
-            <Text style={styles.category}>
+            <Text style={[styles.category, { color: colors.buttonPrimary }]}>
               {item.category}
             </Text>
           </View>
@@ -166,7 +172,6 @@ const Card = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginVertical: 8,
     marginHorizontal: 16,
@@ -179,7 +184,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#E5E7EB'
+    // backgroundColor and borderColor are now dynamic from theme
   },
 
   // Card variants
@@ -245,24 +250,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
-    color: '#1A1A1A',
     marginRight: 8
+    // color is now dynamic from theme
   },
   price: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#70C7A0'
+    fontWeight: '700'
+    // color is now dynamic from theme
   },
   description: {
     fontSize: 14,
-    color: '#6B7280',
     lineHeight: 20,
     marginBottom: 8
+    // color is now dynamic from theme
   },
   date: {
     fontSize: 12,
-    color: '#9CA3AF',
     marginBottom: 8
+    // color is now dynamic from theme
   },
   categoryContainer: {
     alignSelf: 'flex-start',
@@ -271,12 +276,12 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#70C7A0',
     backgroundColor: '#F0F9F5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
     overflow: 'hidden'
+    // color is now dynamic from theme
   },
 
   // Actions styles

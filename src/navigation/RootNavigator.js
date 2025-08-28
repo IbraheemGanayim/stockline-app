@@ -10,19 +10,24 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
 import { useAuth } from '../contexts/AuthProvider';
+import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
 
 /**
  * Loading component displayed only during app initialization (not sign-in attempts)
  */
-const LoadingScreen = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator 
-      size="large" 
-      color="#70C7A0" 
-    />
-  </View>
-);
+const LoadingScreen = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <ActivityIndicator 
+        size="large" 
+        color={colors.buttonPrimary} 
+      />
+    </View>
+  );
+};
 
 /**
  * RootNavigator component - Main navigation controller
@@ -47,8 +52,8 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF'
+    alignItems: 'center'
+    // backgroundColor is now dynamic from theme
   }
 });
 

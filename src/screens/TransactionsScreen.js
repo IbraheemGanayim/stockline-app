@@ -19,9 +19,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, SectionHeader, PrimaryButton, FormInput } from '../components';
 import { useTransactions } from '../hooks';
+import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
 
 const TransactionsScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   // Use Firebase hooks for real-time data
   const { transactions, loading, error, createTransaction } = useTransactions();
   
@@ -102,7 +104,7 @@ const TransactionsScreen = ({ navigation }) => {
     const isBuy = transaction.type === 'buy';
     
     return (
-      <View style={styles.transactionCard}>
+      <View style={[styles.transactionCard, { backgroundColor: colors.cardBackground }]}>
         <View style={styles.transactionLeft}>
           <View style={[styles.typeIndicator, isBuy ? styles.buyIndicator : styles.sellIndicator]}>
             <Ionicons 
@@ -170,7 +172,7 @@ const TransactionsScreen = ({ navigation }) => {
             <TransactionItem key={transaction.id} transaction={transaction} />
           ))
         ) : (
-          <View style={styles.emptyContainer}>
+                      <View style={[styles.emptyContainer, { backgroundColor: colors.cardBackground }]}>
             <Text style={styles.emptyText}>No transactions yet</Text>
             <Text style={styles.emptySubtext}>
               Add your first buy or sell transaction
@@ -185,8 +187,8 @@ const TransactionsScreen = ({ navigation }) => {
         presentationStyle="pageSheet"
         onRequestClose={handleCancelAdd}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: colors.cardBackground, borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={handleCancelAdd}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
@@ -198,7 +200,7 @@ const TransactionsScreen = ({ navigation }) => {
 
           <ScrollView style={styles.modalContent}>
             {/* Transaction Type */}
-            <View style={styles.typeContainer}>
+            <View style={[styles.typeContainer, { backgroundColor: colors.cardBackground }]}>
               <TouchableOpacity
                 style={[
                   styles.typeButton,
@@ -261,7 +263,7 @@ const TransactionsScreen = ({ navigation }) => {
             />
 
             {newTransaction.shares && newTransaction.price && (
-              <View style={styles.totalContainer}>
+              <View style={[styles.totalContainer, { backgroundColor: colors.cardBackground }]}>
                 <Text style={styles.totalLabel}>Total Amount:</Text>
                 <Text style={styles.totalAmount}>
                   ${(parseFloat(newTransaction.shares || 0) * parseFloat(newTransaction.price || 0)).toFixed(2)}
@@ -287,7 +289,7 @@ const styles = StyleSheet.create({
   },
   transactionCard: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     marginHorizontal: 16,
     marginVertical: 4,
     padding: 16,
@@ -394,7 +396,7 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     marginHorizontal: 16,
     borderRadius: 12,
     shadowColor: '#000',
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    // backgroundColor is now dynamic from theme
   },
   modalHeader: {
     flexDirection: 'row',
@@ -427,9 +429,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    // borderBottomColor is now dynamic from theme
   },
   modalTitle: {
     fontSize: 18,
@@ -452,7 +454,7 @@ const styles = StyleSheet.create({
   typeContainer: {
     flexDirection: 'row',
     marginBottom: 24,
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     borderRadius: 12,
     padding: 4,
   },
@@ -474,7 +476,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   totalContainer: {
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     padding: 16,
     borderRadius: 12,
     marginTop: 16,

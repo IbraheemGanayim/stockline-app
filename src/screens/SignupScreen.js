@@ -13,11 +13,13 @@ import {
   Platform,
   TouchableOpacity,
   SafeAreaView,
-  ScrollView
+  ScrollView,
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ValidationInput, SuccessAnimation, PrimaryButton, StocklineLogo, BackgroundElements } from '../components';
+import { ValidationInput, SuccessAnimation, PrimaryButton, StocklineLogo, BackgroundElements, Screen } from '../components';
 import { useAuth } from '../contexts/AuthProvider';
+import { useTheme } from '../contexts/ThemeProvider';
 import { 
   validateEmail, 
   validatePassword, 
@@ -33,6 +35,7 @@ import { theme } from '../theme';
  */
 const SignupScreen = ({ navigation }) => {
   const { signUp, loading } = useAuth();
+  const { colors, isDark } = useTheme();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -128,32 +131,40 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+        translucent={false}
+      />
       <BackgroundElements />
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        bounces={false}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
-              style={styles.backButton}
+              style={[styles.backButton, { backgroundColor: colors.cardBackground }]}
               onPress={navigateToLogin}
             >
-              <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+              <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
             
             <View style={styles.logoContainer}>
-              <StocklineLogo size={80} color="#33D49D" />
+              <StocklineLogo size={80} color={colors.buttonPrimary} />
             </View>
             
-            <Text style={styles.title}>Join Stockline</Text>
-            <Text style={styles.subtitle}>
-              Start investing for your favorite companies{"\n"}with as little as <Text style={styles.highlightText}>$1</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Join Stockline</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Start investing for your favorite companies{"\n"}with as little as <Text style={[styles.highlightText, { color: colors.buttonPrimary }]}>$1</Text>
             </Text>
           </View>
 
@@ -208,9 +219,9 @@ const SignupScreen = ({ navigation }) => {
             />
 
             {generalError ? (
-              <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={16} color={theme.colors.stock.loss} />
-                <Text style={styles.errorText}>{generalError}</Text>
+              <View style={[styles.errorContainer, { backgroundColor: isDark ? colors.cardBackground : '#FEF2F2', borderColor: colors.error }]}>
+                <Ionicons name="alert-circle" size={16} color={colors.error} />
+                <Text style={[styles.errorText, { color: colors.error }]}>{generalError}</Text>
               </View>
             ) : null}
 
@@ -226,19 +237,19 @@ const SignupScreen = ({ navigation }) => {
 
             {/* Divider */}
             <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>Or continue with</Text>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>Or continue with</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
             </View>
 
             {/* Social Login Buttons */}
             <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <Ionicons name="logo-google" size={24} color="#4285F4" />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-apple" size={24} color="#000000" />
+              <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Ionicons name="logo-apple" size={24} color={isDark ? colors.textPrimary : "#000000"} />
               </TouchableOpacity>
             </View>
 
@@ -247,15 +258,16 @@ const SignupScreen = ({ navigation }) => {
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>
               Already have an account?{' '}
             </Text>
             <TouchableOpacity onPress={navigateToLogin} disabled={loading}>
-              <Text style={styles.signInText}>Sign In</Text>
+              <Text style={[styles.signInText, { color: colors.buttonPrimary }]}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-
+      </KeyboardAvoidingView>
+        
       {/* Success Animation */}
       <SuccessAnimation
         visible={showSuccess}
@@ -269,19 +281,20 @@ const SignupScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    flex: 1
+    // backgroundColor is now dynamic from theme
   },
   container: {
     flex: 1,
+    paddingHorizontal: 20,
+    width: '100%',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 0,
-    paddingBottom: 40,
+    flexGrow: 1,
+    width: '100%',
   },
   header: {
     alignItems: 'center',
@@ -296,9 +309,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F8F9FA',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
+    // backgroundColor is now dynamic from theme
   },
   logoContainer: {
     alignItems: 'center',
@@ -308,20 +321,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#4B5563', // Dark grey
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: 'center'
+    // color is now dynamic from theme
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 20
+    // color is now dynamic from theme
   },
   highlightText: {
-    color: '#33D49D',
-    fontWeight: '600',
+    fontWeight: '600'
+    // color is now dynamic from theme
   },
   formContainer: {
     paddingTop: 8,
@@ -339,13 +352,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
+    height: 1
+    // backgroundColor is now dynamic from theme
   },
   dividerText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    marginHorizontal: 16,
+    marginHorizontal: 16
+    // color is now dynamic from theme
   },
   socialContainer: {
     flexDirection: 'row',
@@ -357,27 +370,25 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F8F9FA',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1
+    // backgroundColor and borderColor are now dynamic from theme
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#FECACA',
+    borderWidth: 1
+    // backgroundColor and borderColor are now dynamic from theme
   },
   errorText: {
     fontSize: 14,
-    color: '#DC2626',
     marginLeft: 8,
-    flex: 1,
+    flex: 1
+    // color is now dynamic from theme
   },
 
   footer: {
@@ -388,13 +399,13 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   footerText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 16
+    // color is now dynamic from theme
   },
   signInText: {
     fontSize: 16,
-    color: '#33D49D',
-    fontWeight: '600',
+    fontWeight: '600'
+    // color is now dynamic from theme
   },
 });
 

@@ -1,5 +1,5 @@
 /**
- * Screen component - Base wrapper for all screens
+ * Screen component - Base wrapper for all screens with theme support
  * Provides consistent safe area handling and padding
  * @author Ibraheem Ganayim
  */
@@ -8,6 +8,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeProvider';
 
 /**
  * Screen component that provides consistent layout and safe area handling
@@ -27,18 +28,24 @@ const Screen = ({
   children,
   scrollable = false,
   padding = true,
-  backgroundColor = '#FFFFFF',
+  backgroundColor, // Will use theme background if not provided
   style,
   contentContainerStyle,
   keyboardAvoiding = true,
-  statusBarStyle = 'dark-content',
+  statusBarStyle, // Will use theme-based status bar if not provided
   hasBottomTabs = true,
   bottomTabHeight = 100,
   ...props
 }) => {
+  const { colors, isDark } = useTheme();
+  
+  // Use theme colors if not explicitly provided
+  const screenBackgroundColor = backgroundColor || colors.background;
+  const screenStatusBarStyle = statusBarStyle || (isDark ? 'light-content' : 'dark-content');
+  
   const containerStyle = [
     styles.container,
-    { backgroundColor },
+    { backgroundColor: screenBackgroundColor },
     padding && styles.padding,
     hasBottomTabs && styles.bottomTabPadding,
     style
@@ -58,10 +65,10 @@ const Screen = ({
   } : props;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: screenBackgroundColor }]} edges={['bottom']}>
       <StatusBar 
-        barStyle={statusBarStyle} 
-        backgroundColor={backgroundColor}
+        barStyle={screenStatusBarStyle} 
+        backgroundColor={screenBackgroundColor}
         translucent={false}
       />
       <ContentComponent
@@ -82,8 +89,8 @@ const Screen = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF'
+    flex: 1
+    // backgroundColor is now dynamic from theme
   },
   container: {
     flex: 1
