@@ -356,14 +356,12 @@ const ExchangeScreen = ({ navigation, route }) => {
         </View>
 
         {/* Success Animation Overlay */}
-        {showSuccess && (
-          <View style={styles.successOverlay}>
-            <SuccessAnimation 
-              message={`${activeTab === 'buy' ? 'Purchase' : 'Sale'} Successful!`}
-              subMessage={`${shares} shares of ${selectedStockData.ticker}`}
-            />
-          </View>
-        )}
+        <SuccessAnimation 
+          visible={showSuccess}
+          title={`${activeTab === 'buy' ? 'Purchase' : 'Sale'} Successful!`}
+          message={`${shares} shares of ${selectedStockData.ticker}`}
+          onComplete={() => setShowSuccess(false)}
+        />
 
         {/* Loading Overlay */}
         {loading && (

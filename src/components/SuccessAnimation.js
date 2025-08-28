@@ -10,124 +10,156 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions
+  Dimensions,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 /**
  * SuccessAnimation component
+ * @param {boolean} visible - Whether the modal is visible
+ * @param {string} title - Main success title
  * @param {string} message - Main success message
- * @param {string} subMessage - Secondary message
+ * @param {function} onComplete - Callback when animation completes
  */
-const SuccessAnimation = ({ message = 'Success!', subMessage }) => {
+const SuccessAnimation = ({ visible = false, title = 'Success!', message, onComplete }) => {
   const [scaleAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(0));
   const [bounceAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    // Start animations
-    Animated.sequence([
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(bounceAnim, {
+    if (visible) {
+      // Reset animations
+      scaleAnim.setValue(0);
+      fadeAnim.setValue(0);
+      bounceAnim.setValue(0);
+
+      // Start animations
+      Animated.sequence([
+        Animated.parallel([
+          Animated.spring(scaleAnim, {
             toValue: 1,
-            duration: 1000,
+            tension: 100,
+            friction: 8,
             useNativeDriver: true,
           }),
-          Animated.timing(bounceAnim, {
-            toValue: 0,
-            duration: 1000,
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 600,
             useNativeDriver: true,
           }),
         ]),
-        { iterations: 3 }
-      ),
-    ]).start();
-  }, [scaleAnim, fadeAnim, bounceAnim]);
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(bounceAnim, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(bounceAnim, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ]),
+          { iterations: 2 }
+        ),
+      ]).start(() => {
+        // Animation completed, call onComplete after a delay
+        setTimeout(() => {
+          if (onComplete) {
+            onComplete();
+          }
+        }, 1000);
+      });
+    }
+  }, [visible, scaleAnim, fadeAnim, bounceAnim, onComplete]);
 
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }]
-        }
-      ]}
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="none"
+      statusBarTranslucent={true}
     >
-      <LinearGradient
-        colors={[theme.colors.success.main, theme.colors.success.light]}
-        style={styles.successCard}
-      >
+      <View style={styles.modalOverlay}>
         <Animated.View 
           style={[
-            styles.iconContainer,
+            styles.container,
             {
-              transform: [{
-                scale: bounceAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 1.2]
-                })
-              }]
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }]
             }
           ]}
         >
-          <Ionicons name="checkmark-circle" size={64} color="#FFFFFF" />
-        </Animated.View>
-        
-        <Text style={styles.successMessage}>{message}</Text>
-        {subMessage && (
-          <Text style={styles.successSubMessage}>{subMessage}</Text>
-        )}
-        
-        {/* Success particles effect */}
-        <View style={styles.particlesContainer}>
-          {[...Array(6)].map((_, index) => (
+          <LinearGradient
+            colors={[theme.colors.success.main, theme.colors.success.light]}
+            style={styles.successCard}
+          >
             <Animated.View 
-              key={index}
               style={[
-                styles.particle,
+                styles.iconContainer,
                 {
-                  opacity: bounceAnim,
                   transform: [{
-                    translateY: bounceAnim.interpolate({
+                    scale: bounceAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [0, -20 - (index * 5)]
-                    })
-                  }, {
-                    translateX: bounceAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, (index % 2 === 0 ? 1 : -1) * (10 + index * 3)]
+                      outputRange: [1, 1.2]
                     })
                   }]
                 }
               ]}
-            />
-          ))}
-        </View>
-      </LinearGradient>
-    </Animated.View>
+            >
+              <Ionicons name="checkmark-circle" size={64} color="#FFFFFF" />
+            </Animated.View>
+            
+            <Text style={styles.successTitle}>{title}</Text>
+            {message && (
+              <Text style={styles.successMessage}>{message}</Text>
+            )}
+            
+            {/* Success particles effect */}
+            <View style={styles.particlesContainer}>
+              {[...Array(6)].map((_, index) => (
+                <Animated.View 
+                  key={index}
+                  style={[
+                    styles.particle,
+                    {
+                      opacity: bounceAnim,
+                      transform: [{
+                        translateY: bounceAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, -20 - (index * 5)]
+                        })
+                      }, {
+                        translateX: bounceAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, (index % 2 === 0 ? 1 : -1) * (10 + index * 3)]
+                        })
+                      }]
+                    }
+                  ]}
+                />
+              ))}
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -139,6 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     minWidth: screenWidth * 0.7,
+    maxWidth: screenWidth * 0.85,
     shadowColor: theme.colors.success.main,
     shadowOffset: {
       width: 0,
@@ -151,14 +184,14 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 16,
   },
-  successMessage: {
+  successTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
-  successSubMessage: {
+  successMessage: {
     fontSize: 16,
     fontWeight: '500',
     color: '#FFFFFF',
