@@ -318,18 +318,6 @@ service firebase.storage {
 
 ---
 
-## 📸 Screenshots & Demo Video
-
-### App Screenshots
-*(Screenshots would be inserted here showing each major screen)*
-
-- **Welcome & Authentication**
-- **Home Dashboard (Light & Dark Mode)**
-- **Market Exploration**
-- **Stock Details & Trading**
-- **Portfolio & Charts**
-- **Profile & Settings**
-
 ### 🎬 Demo Video
 **[📹 Watch Full App Demo](https://drive.google.com/file/d/1ybxxhqI3Lmb_AV7TgpS400keMGphpWSY/view?usp=sharing)** - Complete walkthrough of all features and functionality
 
@@ -343,7 +331,6 @@ service firebase.storage {
 - **Solo Development:** Complete architecture, design, and implementation
 - **AI Assistance:** Cursor AI used only for repetitive coding tasks and boilerplate generation
 - **Ownership:** All critical decisions, architecture choices, and feature implementations are original work
-- **Timeline:** [Insert development timeline]
 - **Code Quality:** Clean, documented, and production-ready
 
 ### **Contact Information:**
