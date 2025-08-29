@@ -349,7 +349,7 @@ service firebase.storage {
 ### **Contact Information:**
 - **Email:** [Ganayim.Ibraheem@gmail.com](mailto:Ganayim.Ibraheem@gmail.com)
 - **GitHub:** [@IbraheemGanayim](https://github.com/IbraheemGanayim)
-- **LinkedIn:** [Ibraheem Ganayim](https://linkedin.com/in/ibraheem-ganayim)
+- **LinkedIn:** [Ibraheem Ganayim](https://www.linkedin.com/in/ibraheemganayim/)
 
 ---
 
