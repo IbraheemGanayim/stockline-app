@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
 
 const StockCard = ({ 
@@ -19,10 +20,17 @@ const StockCard = ({
   customIcon = null,
   iconBackgroundColor = null
 }) => {
+  const { colors, isDark } = useTheme();
   const isPositive = change >= 0;
   
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[
+      styles.card, 
+      { 
+        backgroundColor: colors.cardBackground,
+        shadowOpacity: isDark ? 0.3 : 0.1,
+      }
+    ]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.leftSection}>
         <View style={[
           styles.iconContainer,
@@ -33,13 +41,13 @@ const StockCard = ({
           )}
         </View>
         <View style={styles.stockInfo}>
-          <Text style={styles.ticker}>{ticker}</Text>
-          <Text style={styles.companyName}>{companyName}</Text>
+          <Text style={[styles.ticker, { color: colors.textPrimary }]}>{ticker}</Text>
+          <Text style={[styles.companyName, { color: colors.textSecondary }]}>{companyName}</Text>
         </View>
       </View>
       
       <View style={styles.rightSection}>
-        <Text style={styles.price}>${price.toFixed(2)}</Text>
+        <Text style={[styles.price, { color: colors.textPrimary }]}>${price.toFixed(2)}</Text>
         <View style={styles.changeContainer}>
           <Text style={[styles.changeText, isPositive ? styles.positiveText : styles.negativeText]}>
             {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
@@ -60,7 +68,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginHorizontal: 16,
@@ -71,7 +79,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.1,
+    // shadowOpacity is now dynamic from theme
     shadowRadius: 2,
     elevation: 2,
   },
@@ -100,12 +108,12 @@ const styles = StyleSheet.create({
   ticker: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginBottom: 2,
   },
   companyName: {
     fontSize: 14,
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
   },
   rightSection: {
     alignItems: 'flex-end',
@@ -113,7 +121,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginBottom: 2,
   },
   changeContainer: {

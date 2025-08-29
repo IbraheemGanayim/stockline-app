@@ -190,6 +190,49 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // Helper function to determine if a color is light
+  const isLightColor = (color) => {
+    if (!color) return false;
+    // Convert hex to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate luminance (0 = black, 255 = white)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+    return luminance > 186; // threshold for "light" colors
+  };
+
+  // Helper function to get theme-appropriate background color
+  const getIconBackgroundColor = (originalBgColor) => {
+    if (!isDark) return originalBgColor;
+    
+    // In dark mode, replace light colors with dark alternatives
+    if (isLightColor(originalBgColor)) {
+      return colors.cardBackground; // Use theme's card background for consistency
+    }
+    
+    return originalBgColor; // Keep dark colors as they are
+  };
+
+  // Helper function to get theme-appropriate icon color for contrast
+  const getIconColor = (originalColor, backgroundColor) => {
+    if (!isDark) return originalColor;
+    
+    // If we're using a dark background in dark mode and the original color is dark,
+    // we need to ensure good contrast
+    if (isLightColor(backgroundColor)) {
+      return originalColor; // Light background, keep original color
+    } else {
+      // Dark background, ensure the icon color is visible
+      if (!isLightColor(originalColor)) {
+        return colors.textPrimary; // Use theme's primary text color for visibility
+      }
+      return originalColor;
+    }
+  };
+
   // Company Icon component with fallback support
   const CompanyIcon = ({ ticker, size = 40 }) => {
     const [imageError, setImageError] = useState(false);
@@ -199,13 +242,17 @@ const HomeScreen = ({ navigation }) => {
       // Fallback to default icon
       const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
       
+      // Use theme-aware background color for fallback icons
+      const fallbackBgColor = getIconBackgroundColor(iconConfig?.backgroundColor) || colors.buttonPrimary + '20';
+      const fallbackIconColor = getIconColor(iconConfig?.color || colors.buttonPrimary, fallbackBgColor);
+      
       return (
         <View style={[
           styles.companyIcon,
           { 
             width: size, 
             height: size,
-            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+            backgroundColor: fallbackBgColor 
           }
         ]}>
           {fallback.type === 'icon' ? (
@@ -213,13 +260,13 @@ const HomeScreen = ({ navigation }) => {
               <FontAwesome5 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             ) : (
               <MaterialCommunityIcons 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             )
           ) : (
@@ -227,7 +274,7 @@ const HomeScreen = ({ navigation }) => {
               styles.companyIconText,
               { 
                 fontSize: size * 0.4,
-                color: iconConfig?.color || theme.colors.primary.main,
+                color: fallbackIconColor,
                 fontWeight: fallback.font === 'bold' ? '700' : '600'
               }
             ]}>
@@ -239,13 +286,16 @@ const HomeScreen = ({ navigation }) => {
     }
 
     // Try to load company logo image
+    // Use theme-aware background color for image icons
+    const imageBgColor = getIconBackgroundColor(iconConfig.backgroundColor);
+    
     return (
       <View style={[
         styles.companyIcon,
         { 
           width: size, 
           height: size,
-          backgroundColor: iconConfig.backgroundColor 
+          backgroundColor: imageBgColor 
         }
       ]}>
         <Image
@@ -331,7 +381,7 @@ const HomeScreen = ({ navigation }) => {
                 onPress={() => handleStockPress(stock)}
                 showChart={true}
                 customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
-                iconBackgroundColor={iconConfig?.backgroundColor}
+                iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
               />
             );
           })}
@@ -377,7 +427,7 @@ const HomeScreen = ({ navigation }) => {
                   onPress={() => handleStockPress(stock)}
                   showChart={true}
                   customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
-                  iconBackgroundColor={iconConfig?.backgroundColor}
+                  iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
                 />
               </TouchableOpacity>
             );
