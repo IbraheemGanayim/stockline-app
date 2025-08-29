@@ -59,6 +59,50 @@ const COMPANY_ICONS = {
 const PortfolioScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const { portfolio, holdings, loading, error, refreshPortfolio } = usePortfolio();
+
+  // Helper function to determine if a color is light
+  const isLightColor = (color) => {
+    if (!color) return false;
+    // Convert hex to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate luminance (0 = black, 255 = white)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+    return luminance > 186; // threshold for "light" colors
+  };
+
+  // Helper function to get theme-appropriate background color
+  const getIconBackgroundColor = (originalBgColor) => {
+    if (!isDark) return originalBgColor;
+    
+    // In dark mode, replace light colors with dark alternatives
+    if (isLightColor(originalBgColor)) {
+      return colors.cardBackground; // Use theme's card background for consistency
+    }
+    
+    return originalBgColor; // Keep dark colors as they are
+  };
+
+  // Helper function to get theme-appropriate icon color for contrast
+  const getIconColor = (originalColor, backgroundColor) => {
+    if (!isDark) return originalColor;
+    
+    // If we're using a dark background in dark mode and the original color is dark,
+    // we need to ensure good contrast
+    if (isLightColor(backgroundColor)) {
+      return originalColor; // Light background, keep original color
+    } else {
+      // Dark background, ensure the icon color is visible
+      if (!isLightColor(originalColor)) {
+        return colors.textPrimary; // Use theme's primary text color for visibility
+      }
+      return originalColor;
+    }
+  };
+
   const [refreshing, setRefreshing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [animatedValues] = useState({
@@ -232,13 +276,17 @@ const PortfolioScreen = ({ navigation }) => {
       // Fallback to default icon
       const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
       
+      // Use theme-aware background color for fallback icons
+      const fallbackBgColor = getIconBackgroundColor(iconConfig?.backgroundColor) || colors.buttonPrimary + '20';
+      const fallbackIconColor = getIconColor(iconConfig?.color || colors.buttonPrimary, fallbackBgColor);
+      
       return (
         <View style={[
           styles.modernStockLogo,
           { 
             width: size, 
             height: size,
-            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+            backgroundColor: fallbackBgColor 
           }
         ]}>
           {fallback.type === 'icon' ? (
@@ -246,13 +294,13 @@ const PortfolioScreen = ({ navigation }) => {
               <FontAwesome5 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             ) : (
               <MaterialCommunityIcons 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             )
           ) : (
@@ -260,7 +308,7 @@ const PortfolioScreen = ({ navigation }) => {
               styles.portfolioStockLogoText,
               { 
                 fontSize: size * 0.4,
-                color: iconConfig?.color || theme.colors.primary.main,
+                color: fallbackIconColor,
                 fontWeight: fallback.font === 'bold' ? '700' : '600'
               }
             ]}>
@@ -272,13 +320,16 @@ const PortfolioScreen = ({ navigation }) => {
     }
 
     // Try to load company logo image
+    // Use theme-aware background color for image icons
+    const imageBgColor = getIconBackgroundColor(iconConfig.backgroundColor);
+    
     return (
       <View style={[
         styles.modernStockLogo,
         { 
           width: size, 
           height: size,
-          backgroundColor: iconConfig.backgroundColor 
+          backgroundColor: imageBgColor 
         }
       ]}>
         <Image
@@ -337,10 +388,10 @@ const PortfolioScreen = ({ navigation }) => {
     return (
       <Screen padding={true}>
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={48} color={theme.colors.error.main} />
-          <Text style={styles.errorText}>Unable to load portfolio</Text>
-          <Text style={styles.errorSubtext}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
+          <MaterialIcons name="error-outline" size={48} color={colors.error || '#F44336'} />
+          <Text style={[styles.errorText, { color: colors.textPrimary }]}>Unable to load portfolio</Text>
+          <Text style={[styles.errorSubtext, { color: colors.textSecondary }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.buttonPrimary }]} onPress={onRefresh}>
             <Text style={styles.retryText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -359,15 +410,15 @@ const PortfolioScreen = ({ navigation }) => {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor={theme.colors.primary.main}
-          colors={[theme.colors.primary.main]}
+          tintColor={colors.buttonPrimary}
+          colors={[colors.buttonPrimary]}
         />
       }
     >
         {/* Live Time Indicator */}
         <View style={[styles.timeIndicator, { backgroundColor: colors.cardBackground }]}>
           <View style={styles.liveDot} />
-          <Text style={styles.liveText}>
+          <Text style={[styles.liveText, { color: colors.textSecondary }]}>
             Live • {currentTime.toLocaleTimeString('en-US', { 
               hour: '2-digit', 
               minute: '2-digit' 
@@ -406,7 +457,7 @@ const PortfolioScreen = ({ navigation }) => {
                 </Text>
               </LinearGradient>
               <TouchableOpacity style={styles.infoIcon}>
-                <Ionicons name="information-circle-outline" size={16} color={theme.colors.primary.main} />
+                <Ionicons name="information-circle-outline" size={16} color={colors.buttonPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -429,11 +480,11 @@ const PortfolioScreen = ({ navigation }) => {
             ]}
           >
             <LinearGradient
-              colors={['#E8F5E8', '#F1F8E9']}
+              colors={isDark ? [colors.cardBackground, colors.cardBackground] : ['#E8F5E8', '#F1F8E9']}
               style={styles.cardGradient}
             >
               <Ionicons name="trending-up" size={24} color={theme.colors.stock.gain} style={styles.cardIcon} />
-              <Text style={styles.cardLabel}>Total Gain</Text>
+              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>Total Gain</Text>
               <AnimatedNumber value={portfolio.gainAmount || 234.11} />
             </LinearGradient>
           </Animated.View>
@@ -453,11 +504,11 @@ const PortfolioScreen = ({ navigation }) => {
             ]}
           >
             <LinearGradient
-              colors={['#FFEBEE', '#FFCDD2']}
+              colors={isDark ? [colors.cardBackground, colors.cardBackground] : ['#FFEBEE', '#FFCDD2']}
               style={styles.cardGradient}
             >
               <Ionicons name="trending-down" size={24} color={theme.colors.stock.loss} style={styles.cardIcon} />
-              <Text style={styles.cardLabel}>Total Loss</Text>
+              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>Total Loss</Text>
               <AnimatedNumber value={portfolio.lossAmount || 34.11} />
             </LinearGradient>
           </Animated.View>
@@ -480,8 +531,8 @@ const PortfolioScreen = ({ navigation }) => {
           ]}
         >
           <View style={styles.chartHeader}>
-            <Text style={styles.chartTitle}>Performance</Text>
-            <View style={styles.chartPeriod}>
+            <Text style={[styles.chartTitle, { color: colors.textPrimary }]}>Performance</Text>
+            <View style={[styles.chartPeriod, { backgroundColor: colors.buttonPrimary }]}>
               <Text style={styles.periodText}>7D</Text>
             </View>
           </View>
@@ -524,8 +575,8 @@ const PortfolioScreen = ({ navigation }) => {
           <View style={styles.stocksHeader}>
             <Text style={[styles.stocksTitle, { color: colors.textPrimary }]}>Holdings</Text>
             <TouchableOpacity style={styles.viewAllButton}>
-              <Text style={styles.viewAllText}>View All</Text>
-              <Ionicons name="chevron-forward" size={16} color={theme.colors.primary.main} />
+              <Text style={[styles.viewAllText, { color: colors.buttonPrimary }]}>View All</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.buttonPrimary} />
             </TouchableOpacity>
           </View>
           
@@ -608,7 +659,7 @@ const styles = StyleSheet.create({
   liveText: {
     fontSize: 11,
     fontWeight: '400',
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     letterSpacing: 0.5,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
@@ -684,7 +735,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     marginBottom: 8,
     fontWeight: '400',
     letterSpacing: 0.5,
@@ -720,12 +771,12 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: 20,
     fontWeight: '300',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     letterSpacing: -0.5,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
   },
   chartPeriod: {
-    backgroundColor: theme.colors.primary.main,
+    // backgroundColor is now dynamic from theme
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -784,7 +835,7 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 13,
     fontWeight: '400',
-    color: theme.colors.primary.main,
+    // color is now dynamic from theme
     marginRight: 4,
     letterSpacing: 0.3,
   },
@@ -926,7 +977,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 20,
     fontWeight: '300',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
@@ -936,14 +987,14 @@ const styles = StyleSheet.create({
   errorSubtext: {
     fontSize: 13,
     fontWeight: '300',
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     textAlign: 'center',
     marginBottom: 24,
     letterSpacing: 0.2,
     lineHeight: 18,
   },
   retryButton: {
-    backgroundColor: theme.colors.primary.main,
+    // backgroundColor is now dynamic from theme
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
