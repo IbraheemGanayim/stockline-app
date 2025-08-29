@@ -4,7 +4,7 @@
  * @author Ibraheem Ganayim
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -13,7 +13,8 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components';
@@ -22,6 +23,7 @@ import { useAuth } from '../contexts/AuthProvider';
 import { useTheme, THEME_MODES } from '../contexts/ThemeProvider';
 
 import { resetPassword } from '../services/auth';
+import { getImageFromFirestore } from '../services/storage';
 import { theme } from '../theme';
 
 /**
@@ -35,6 +37,39 @@ const SettingsScreen = ({ navigation }) => {
 
   // Password reset state
   const [resetLoading, setResetLoading] = useState(false);
+  
+  // Profile photo state
+  const [actualPhotoData, setActualPhotoData] = useState(null);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+
+  // Load actual photo data when user changes
+  useEffect(() => {
+    const loadPhotoData = async () => {
+      const photoURL = user?.photoURL;
+      if (photoURL && photoURL.startsWith('firestore://')) {
+        setIsLoadingPhoto(true);
+        try {
+          const imageData = await getImageFromFirestore(photoURL);
+          setActualPhotoData(imageData);
+        } catch (error) {
+          console.error('Error loading photo data:', error);
+          setActualPhotoData(null);
+        } finally {
+          setIsLoadingPhoto(false);
+        }
+      } else if (photoURL && photoURL.startsWith('data:image')) {
+        // Already base64 data
+        setActualPhotoData(photoURL);
+      } else if (photoURL && photoURL.startsWith('http')) {
+        // Regular URL, use as-is
+        setActualPhotoData(photoURL);
+      } else {
+        setActualPhotoData(null);
+      }
+    };
+
+    loadPhotoData();
+  }, [user?.photoURL]);
 
   /**
    * Get theme mode display text
@@ -243,10 +278,20 @@ const SettingsScreen = ({ navigation }) => {
       <View style={[styles.profileCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <View style={styles.profileHeader}>
           <View style={[styles.avatar, { backgroundColor: colors.buttonPrimary }]}>
-            <Text style={styles.avatarText}>
-              {user?.displayName?.charAt(0)?.toUpperCase() || 
-               user?.email?.charAt(0)?.toUpperCase() || '?'}
-            </Text>
+            {isLoadingPhoto ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : actualPhotoData ? (
+              <Image 
+                source={{ uri: actualPhotoData }} 
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.avatarText}>
+                {user?.displayName?.charAt(0)?.toUpperCase() || 
+                 user?.email?.charAt(0)?.toUpperCase() || '?'}
+              </Text>
+            )}
           </View>
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.textPrimary }]}>
@@ -380,8 +425,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16
+    marginRight: 16,
+    overflow: 'hidden'
     // backgroundColor is now dynamic from theme
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   avatarText: {
     fontSize: 18,

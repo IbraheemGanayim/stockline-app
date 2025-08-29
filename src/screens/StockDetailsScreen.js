@@ -15,13 +15,76 @@ import {
   Alert,
   Vibration,
 } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PrimaryButton } from '../components';
 import { theme } from '../theme';
+import { Image, Platform } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+/**
+ * Company icons mapping with multiple fallback options
+ */
+const COMPANY_ICONS = {
+  AAPL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/apple.com',
+    fallback: { type: 'icon', name: 'apple', library: 'FontAwesome5' },
+    color: '#000000',
+    backgroundColor: '#F5F5F7'
+  },
+  MSFT: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/microsoft.com',
+    fallback: { type: 'icon', name: 'microsoft', library: 'FontAwesome5' },
+    color: '#00A1F1',
+    backgroundColor: '#F3F2F1'
+  },
+  GOOGL: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/google.com',
+    fallback: { type: 'icon', name: 'google', library: 'FontAwesome5' },
+    color: '#4285F4',
+    backgroundColor: '#F8F9FA'
+  },
+  AMZN: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/amazon.com',
+    fallback: { type: 'icon', name: 'amazon', library: 'FontAwesome5' },
+    color: '#FF9900',
+    backgroundColor: '#232F3E'
+  },
+  TSLA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/tesla.com',
+    fallback: { type: 'text', text: 'T', font: 'bold' },
+    color: '#CC0000',
+    backgroundColor: '#FFFFFF'
+  },
+  NVDA: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/nvidia.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#76B900',
+    backgroundColor: '#000000'
+  },
+  NFLX: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/netflix.com',
+    fallback: { type: 'text', text: 'N', font: 'bold' },
+    color: '#E50914',
+    backgroundColor: '#000000'
+  },
+  META: {
+    type: 'image',
+    source: 'https://logo.clearbit.com/meta.com',
+    fallback: { type: 'icon', name: 'facebook', library: 'FontAwesome5' },
+    color: '#1877F2',
+    backgroundColor: '#F0F2F5'
+  },
+};
 
 // Mock chart data generator
 const generateChartData = (period, basePrice) => {
@@ -153,22 +216,70 @@ const StockDetailsScreen = ({ route, navigation }) => {
     );
   };
 
-  const StockLogo = ({ symbol }) => {
-    const logoMapping = {
-      'AMZN': { text: 'a', color: '#FF9900', backgroundColor: '#232F3E' },
-      'AAPL': { text: '', color: '#FFFFFF', backgroundColor: '#000000' },
-      'GOOGL': { text: 'G', color: '#FFFFFF', backgroundColor: '#4285F4' },
-      'MSFT': { text: 'M', color: '#FFFFFF', backgroundColor: '#00A1F1' },
-      'TSLA': { text: 'T', color: '#FFFFFF', backgroundColor: '#CC0000' },
-      'NFLX': { text: 'N', color: '#FFFFFF', backgroundColor: '#E50914' },
-      'META': { text: 'f', color: '#FFFFFF', backgroundColor: '#1877F2' },
-    };
+  // Company Icon component with fallback support
+  const CompanyIcon = ({ ticker, size = 80 }) => {
+    const [imageError, setImageError] = useState(false);
+    const iconConfig = COMPANY_ICONS[ticker];
+    
+    if (!iconConfig || imageError) {
+      // Fallback to default icon
+      const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
+      
+      return (
+        <View style={[
+          styles.stockLogo,
+          { 
+            width: size, 
+            height: size,
+            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.main 
+          }
+        ]}>
+          {fallback.type === 'icon' ? (
+            fallback.library === 'FontAwesome5' ? (
+              <FontAwesome5 
+                name={fallback.name} 
+                size={size * 0.4} 
+                color={iconConfig?.color || '#FFFFFF'} 
+              />
+            ) : (
+              <MaterialCommunityIcons 
+                name={fallback.name} 
+                size={size * 0.4} 
+                color={iconConfig?.color || '#FFFFFF'} 
+              />
+            )
+          ) : (
+            <Text style={[
+              styles.stockLogoText,
+              { 
+                fontSize: size * 0.4,
+                color: iconConfig?.color || '#FFFFFF',
+                fontWeight: fallback.font === 'bold' ? '700' : '600'
+              }
+            ]}>
+              {fallback.text || ticker[0]}
+            </Text>
+          )}
+        </View>
+      );
+    }
 
-    const logo = logoMapping[symbol] || { text: symbol?.[0] || 'S', color: '#FFFFFF', backgroundColor: theme.colors.primary.main };
-
+    // Try to load company logo image
     return (
-      <View style={[styles.stockLogo, { backgroundColor: logo.backgroundColor }]}>
-        <Text style={[styles.stockLogoText, { color: logo.color }]}>{logo.text}</Text>
+      <View style={[
+        styles.stockLogo,
+        { 
+          width: size, 
+          height: size,
+          backgroundColor: iconConfig.backgroundColor 
+        }
+      ]}>
+        <Image
+          source={{ uri: iconConfig.source }}
+          style={[styles.stockLogoImage, { width: size * 0.7, height: size * 0.7 }]}
+          onError={() => setImageError(true)}
+          resizeMode="contain"
+        />
       </View>
     );
   };
@@ -205,7 +316,7 @@ const StockDetailsScreen = ({ route, navigation }) => {
       >
         {/* Stock Logo */}
         <View style={styles.logoContainer}>
-          <StockLogo symbol={stock.ticker || stock.symbol || 'AMZN'} />
+          <CompanyIcon ticker={stock.ticker || stock.symbol || 'AMZN'} size={80} />
         </View>
 
         {/* Price Information */}
@@ -339,6 +450,9 @@ const styles = StyleSheet.create({
   stockLogoText: {
     fontSize: 32,
     fontWeight: '900',
+  },
+  stockLogoImage: {
+    borderRadius: 10,
   },
   priceContainer: {
     alignItems: 'center',
