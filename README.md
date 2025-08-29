@@ -331,7 +331,7 @@ service firebase.storage {
 - **Profile & Settings**
 
 ### 🎬 Demo Video
-**[Demo Video Link]** *(Loom/QuickTime screen recording link would go here)*
+**[📹 Watch Full App Demo](https://drive.google.com/file/d/1ybxxhqI3Lmb_AV7TgpS400keMGphpWSY/view?usp=sharing)** - Complete walkthrough of all features and functionality
 
 ---
 
