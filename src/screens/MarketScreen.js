@@ -13,14 +13,13 @@ import {
   TextInput,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   Platform,
   Image
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { Screen, SectionHeader, MiniChart } from '../components';
+import { Screen, SectionHeader, MiniChart, Toast } from '../components';
 import { useWatchlist } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
@@ -252,6 +251,9 @@ const MarketScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   console.log('State initialized, watchlist length:', watchlist?.length);
 
@@ -286,6 +288,17 @@ const MarketScreen = ({ navigation }) => {
     navigation.navigate('StockDetails', { stock });
   }, [navigation]);
 
+  /**
+   * Show toast notification
+   * @param {string} message - Message to display
+   * @param {string} type - Toast type ('success' | 'error' | 'info')
+   */
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
   // Handle watchlist toggle
   const handleWatchlistToggle = useCallback(async (stock) => {
     try {
@@ -299,12 +312,12 @@ const MarketScreen = ({ navigation }) => {
     if (isInWatchlist) {
       const result = await removeStock(stock.ticker);
       if (result.success) {
-        Alert.alert('Removed', `${stock.ticker} removed from watchlist`);
+        showToast(`${stock.ticker} removed from watchlist`, 'success');
       }
     } else {
       const result = await addStock(stock);
       if (result.success) {
-        Alert.alert('Added', `${stock.ticker} added to watchlist`);
+        showToast(`${stock.ticker} added to watchlist`, 'success');
       }
     }
   }, [watchlist, addStock, removeStock]);
@@ -564,6 +577,13 @@ const MarketScreen = ({ navigation }) => {
           )}
         </View>
 
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+        duration={1000}
+      />
     </Screen>
   );
 };

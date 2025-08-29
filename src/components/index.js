@@ -19,3 +19,4 @@ export { default as StocklineLogo } from './StocklineLogo';
 export { default as BackgroundElements } from './BackgroundElements';
 export { default as MiniChart } from './MiniChart';
 export { default as TrendingCard } from './TrendingCard';
+export { default as Toast } from './Toast';

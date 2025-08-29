@@ -11,13 +11,12 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Image,
   Platform
 } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal, TrendingCard } from '../components';
+import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal, TrendingCard, Toast } from '../components';
 import { usePortfolio, useWatchlist } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { getTrendingStocks } from '../services/watchlist';
@@ -112,6 +111,9 @@ const HomeScreen = ({ navigation }) => {
   const [trendingStocks, setTrendingStocks] = useState([]);
   const [showStockSearchModal, setShowStockSearchModal] = useState(false);
   const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   // Load trending stocks on component mount
   useEffect(() => {
@@ -157,6 +159,17 @@ const HomeScreen = ({ navigation }) => {
   };
 
   /**
+   * Show toast notification
+   * @param {string} message - Message to display
+   * @param {string} type - Toast type ('success' | 'error' | 'info')
+   */
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  /**
    * Handle stock selection from search modal
    * @param {Object} stock - Selected stock to add to watchlist
    */
@@ -164,13 +177,13 @@ const HomeScreen = ({ navigation }) => {
     try {
       const result = await addToWatchlist(stock);
       if (result.success) {
-        Alert.alert('Success', `${stock.ticker} added to your watchlist!`);
+        showToast(`${stock.ticker} added to watchlist`, 'success');
       } else {
-        Alert.alert('Error', result.error || 'Failed to add stock to watchlist');
+        showToast(result.error || 'Failed to add stock to watchlist', 'error');
       }
     } catch (error) {
       console.error('Error adding stock to watchlist:', error);
-      Alert.alert('Error', 'Failed to add stock to watchlist');
+      showToast('Failed to add stock to watchlist', 'error');
     }
   };
 
@@ -181,13 +194,13 @@ const HomeScreen = ({ navigation }) => {
     try {
       const result = await removeFromWatchlist(ticker);
       if (result.success) {
-        Alert.alert('Success', 'Stock removed from watchlist');
+        showToast('Stock removed from watchlist', 'success');
       } else {
-        Alert.alert('Error', result.error || 'Failed to remove stock from watchlist');
+        showToast(result.error || 'Failed to remove stock from watchlist', 'error');
       }
     } catch (error) {
       console.error('Error removing from watchlist:', error);
-      Alert.alert('Error', 'Failed to remove stock from watchlist');
+      showToast('Failed to remove stock from watchlist', 'error');
     }
   };
 
@@ -459,6 +472,14 @@ const HomeScreen = ({ navigation }) => {
         onClose={() => setShowStockSearchModal(false)}
         onSelectStock={handleStockSelect}
         existingWatchlist={watchlist}
+      />
+      
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+        duration={1000}
       />
     </Screen>
   );

@@ -17,14 +17,10 @@ const FirstTimeUserWrapper = ({ children }) => {
   useEffect(() => {
     // Show welcome screen for first-time users once they're authenticated
     if (isFirstTimeUser && user) {
-      // Small delay to ensure navigation stack is ready
-      const timer = setTimeout(() => {
-        navigation.navigate('Welcome', {
-          userName: user.displayName || 'There'
-        });
-      }, 500);
-
-      return () => clearTimeout(timer);
+      // Navigate immediately to welcome screen
+      navigation.navigate('Welcome', {
+        userName: user.displayName || 'There'
+      });
     }
   }, [isFirstTimeUser, user, navigation]);
 
