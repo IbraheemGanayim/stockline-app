@@ -20,7 +20,7 @@ import {
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { Screen, SectionHeader } from '../components';
+import { Screen, SectionHeader, MiniChart } from '../components';
 import { useWatchlist } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
@@ -102,6 +102,26 @@ const COMPANY_ICONS = {
 };
 
 /**
+ * Generate mock sparkline data for stocks
+ * @param {number} basePrice - Base price for the stock
+ * @param {number} points - Number of data points (default 20)
+ * @returns {Array} Array of price values
+ */
+const generateSparklineData = (basePrice = 100, points = 20) => {
+  const data = [];
+  let currentPrice = basePrice;
+  
+  for (let i = 0; i < points; i++) {
+    // Add some random variation (-2% to +2%)
+    const variation = (Math.random() - 0.5) * 0.04 * currentPrice;
+    currentPrice = Math.max(currentPrice + variation, basePrice * 0.8); // Prevent negative prices
+    data.push(parseFloat(currentPrice.toFixed(2)));
+  }
+  
+  return data;
+};
+
+/**
  * Enhanced stock data with real company information
  */
 const MARKET_STOCKS = [
@@ -113,7 +133,8 @@ const MARKET_STOCKS = [
     changePercent: 1.23,
     sector: 'Technology',
     marketCap: '2.75T',
-    volume: '58.2M'
+    volume: '58.2M',
+    sparklineData: generateSparklineData(175.84)
   },
   {
     ticker: 'MSFT',
@@ -123,7 +144,8 @@ const MARKET_STOCKS = [
     changePercent: -0.43,
     sector: 'Technology',
     marketCap: '2.49T',
-    volume: '32.8M'
+    volume: '32.8M',
+    sparklineData: generateSparklineData(335.76)
   },
   {
     ticker: 'GOOGL',
@@ -133,7 +155,8 @@ const MARKET_STOCKS = [
     changePercent: 0.70,
     sector: 'Technology',
     marketCap: '1.61T',
-    volume: '24.1M'
+    volume: '24.1M',
+    sparklineData: generateSparklineData(127.48)
   },
   {
     ticker: 'AMZN',
@@ -143,7 +166,8 @@ const MARKET_STOCKS = [
     changePercent: 2.26,
     sector: 'Consumer Discretionary',
     marketCap: '1.51T',
-    volume: '41.7M'
+    volume: '41.7M',
+    sparklineData: generateSparklineData(145.32)
   },
   {
     ticker: 'TSLA',
@@ -153,7 +177,8 @@ const MARKET_STOCKS = [
     changePercent: -2.23,
     sector: 'Consumer Discretionary',
     marketCap: '789B',
-    volume: '95.2M'
+    volume: '95.2M',
+    sparklineData: generateSparklineData(248.50)
   },
   {
     ticker: 'NVDA',
@@ -163,7 +188,8 @@ const MARKET_STOCKS = [
     changePercent: 1.44,
     sector: 'Technology',
     marketCap: '2.16T',
-    volume: '28.9M'
+    volume: '28.9M',
+    sparklineData: generateSparklineData(875.28)
   },
   {
     ticker: 'NFLX',
@@ -173,7 +199,8 @@ const MARKET_STOCKS = [
     changePercent: -0.64,
     sector: 'Communication Services',
     marketCap: '198B',
-    volume: '12.4M'
+    volume: '12.4M',
+    sparklineData: generateSparklineData(445.23)
   },
   {
     ticker: 'META',
@@ -183,7 +210,8 @@ const MARKET_STOCKS = [
     changePercent: 1.59,
     sector: 'Communication Services',
     marketCap: '792B',
-    volume: '19.8M'
+    volume: '19.8M',
+    sparklineData: generateSparklineData(312.67)
   },
   {
     ticker: 'DIS',
@@ -193,7 +221,8 @@ const MARKET_STOCKS = [
     changePercent: 1.29,
     sector: 'Communication Services',
     marketCap: '177B',
-    volume: '8.9M'
+    volume: '8.9M',
+    sparklineData: generateSparklineData(96.78)
   },
   {
     ticker: 'BABA',
@@ -203,7 +232,8 @@ const MARKET_STOCKS = [
     changePercent: -2.09,
     sector: 'Consumer Discretionary',
     marketCap: '189B',
-    volume: '15.2M'
+    volume: '15.2M',
+    sparklineData: generateSparklineData(78.45)
   }
 ];
 
@@ -366,7 +396,7 @@ const MarketScreen = ({ navigation }) => {
   // Stock card component
   const StockCard = ({ stock, isInWatchlist }) => (
     <TouchableOpacity
-      style={[styles.stockCard, { backgroundColor: colors.cardBackground }]}
+      style={[styles.stockCard, { backgroundColor: 'transparent' }]}
       onPress={() => handleStockPress(stock)}
       activeOpacity={0.7}
     >
@@ -377,6 +407,15 @@ const MarketScreen = ({ navigation }) => {
           <Text style={[styles.stockName, { color: colors.textSecondary }]} numberOfLines={1}>{stock.companyName}</Text>
           <Text style={[styles.stockSector, { color: colors.textSecondary }]}>{stock.sector}</Text>
         </View>
+      </View>
+
+      <View style={styles.stockChart}>
+        <MiniChart 
+          data={stock.sparklineData || [50, 52, 48, 55, 53, 49, 51]} 
+          isPositive={stock.changePercent >= 0}
+          width={60}
+          height={30}
+        />
       </View>
 
       <View style={styles.stockCenter}>
@@ -695,6 +734,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     // color is now dynamic from theme
     fontWeight: '500',
+  },
+  stockChart: {
+    marginHorizontal: 16,
+    justifyContent: 'center',
   },
   stockCenter: {
     alignItems: 'flex-end',

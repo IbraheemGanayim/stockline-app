@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Screen } from '../components';
+import { Screen, MiniChart } from '../components';
 import { usePortfolio } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
@@ -583,7 +583,7 @@ const PortfolioScreen = ({ navigation }) => {
           {modernStocks.map((stock, index) => (
             <TouchableOpacity 
               key={stock.id} 
-              style={[styles.modernStockCard, { backgroundColor: colors.background }]} 
+              style={[styles.modernStockCard, { backgroundColor: 'transparent' }]} 
               onPress={() => handleStockPress(stock)}
               activeOpacity={0.7}
             >
@@ -596,22 +596,12 @@ const PortfolioScreen = ({ navigation }) => {
               </View>
               
               <View style={styles.stockCenter}>
-                <View style={styles.modernSparkline}>
-                  {stock.sparklineData.slice(-7).map((point, i) => (
-                    <View 
-                      key={i}
-                      style={[
-                        styles.sparklineBar,
-                        { 
-                          height: (point - Math.min(...stock.sparklineData)) / 
-                                  (Math.max(...stock.sparklineData) - Math.min(...stock.sparklineData)) * 20 + 5,
-                          backgroundColor: stock.changePercent > 0 ? theme.colors.stock.gain : theme.colors.stock.loss,
-                          opacity: 0.3 + (i / 7) * 0.7
-                        }
-                      ]}
-                    />
-                  ))}
-                </View>
+                <MiniChart 
+                  data={stock.sparklineData} 
+                  isPositive={stock.changePercent > 0}
+                  width={60}
+                  height={30}
+                />
               </View>
               
               <View style={styles.stockRight}>
@@ -903,7 +893,7 @@ const styles = StyleSheet.create({
   stockCenter: {
     flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   modernSparkline: {
     flexDirection: 'row',

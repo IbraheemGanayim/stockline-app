@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal } from '../components';
+import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal, TrendingCard } from '../components';
 import { usePortfolio, useWatchlist } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { getTrendingStocks } from '../services/watchlist';
@@ -111,6 +111,7 @@ const HomeScreen = ({ navigation }) => {
   const { watchlist, addStock: addToWatchlist, removeStock: removeFromWatchlist } = useWatchlist();
   const [trendingStocks, setTrendingStocks] = useState([]);
   const [showStockSearchModal, setShowStockSearchModal] = useState(false);
+  const [currentTrendingIndex, setCurrentTrendingIndex] = useState(0);
 
   // Load trending stocks on component mount
   useEffect(() => {
@@ -367,11 +368,23 @@ const HomeScreen = ({ navigation }) => {
           style={styles.sectionHeader}
         />
         
-        <View style={styles.trendingContainer}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.trendingContainer}
+          contentContainerStyle={styles.trendingScrollContent}
+          onScroll={(event) => {
+            const scrollX = event.nativeEvent.contentOffset.x;
+            const cardWidth = 212 + 16; // card width + margin
+            const index = Math.round(scrollX / cardWidth);
+            setCurrentTrendingIndex(index);
+          }}
+          scrollEventThrottle={16}
+        >
           {trendingStocks.map((stock, index) => {
             const iconConfig = COMPANY_ICONS[stock.ticker];
             return (
-              <StockCard
+              <TrendingCard
                 key={index}
                 ticker={stock.ticker}
                 companyName={stock.companyName}
@@ -379,13 +392,33 @@ const HomeScreen = ({ navigation }) => {
                 change={stock.change}
                 changePercent={stock.changePercent}
                 onPress={() => handleStockPress(stock)}
-                showChart={true}
                 customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
                 iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
+                sparklineData={stock.sparklineData || [50, 52, 48, 55, 53, 49, 51]}
               />
             );
           })}
-        </View>
+        </ScrollView>
+        
+        {/* Trending Dots Indicator */}
+        {trendingStocks.length > 1 && (
+          <View style={styles.dotsContainer}>
+            {trendingStocks.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: index === currentTrendingIndex 
+                      ? colors.buttonPrimary 
+                      : colors.textSecondary,
+                    opacity: index === currentTrendingIndex ? 1 : 0.3,
+                  }
+                ]}
+              />
+            ))}
+          </View>
+        )}
         
         {/* Watchlist Section */}
         <View style={styles.wishlistHeader}>
@@ -428,6 +461,7 @@ const HomeScreen = ({ navigation }) => {
                   showChart={true}
                   customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
                   iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
+                  sparklineData={stock.sparklineData || [50, 52, 48, 55, 53, 49, 51]}
                 />
               </TouchableOpacity>
             );
@@ -498,7 +532,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   trendingContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
+  },
+  trendingScrollContent: {
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 3,
   },
   wishlistHeader: {
     flexDirection: 'row',

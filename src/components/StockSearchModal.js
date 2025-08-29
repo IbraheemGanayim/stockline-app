@@ -22,6 +22,7 @@ import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-ico
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
+import MiniChart from './MiniChart';
 
 /**
  * Company icons mapping with multiple fallback options
@@ -302,43 +303,7 @@ const CompanyIcon = ({ ticker, size = 40 }) => {
   );
 };
 
-/**
- * Mini Chart component for sparkline visualization using simple bars
- */
-const MiniChart = ({ data, isPositive, width = 60, height = 30 }) => {
-  if (!data || data.length === 0) return null;
 
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-
-  const barWidth = width / data.length;
-  
-  return (
-    <View style={[styles.miniChart, { width, height }]}>
-      {data.map((value, index) => {
-        const barHeight = ((value - min) / range) * height * 0.8;
-        const marginTop = height - barHeight;
-        
-        return (
-          <View
-            key={index}
-            style={[
-              styles.chartBar,
-              {
-                width: barWidth * 0.7,
-                height: barHeight,
-                marginTop,
-                backgroundColor: isPositive ? '#22C55E' : '#EF4444',
-                opacity: 0.3 + (index / data.length) * 0.7, // Gradient effect
-              }
-            ]}
-          />
-        );
-      })}
-    </View>
-  );
-};
 
 /**
  * Stock Search Modal Component
@@ -695,7 +660,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   stockCenter: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
   },
   miniChart: {
     flexDirection: 'row',

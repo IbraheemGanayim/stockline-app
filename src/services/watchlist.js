@@ -4,6 +4,26 @@
  * @author Ibraheem Ganayim
  */
 
+/**
+ * Generate mock sparkline data for stocks
+ * @param {number} basePrice - Base price for the stock
+ * @param {number} points - Number of data points (default 20)
+ * @returns {Array} Array of price values
+ */
+const generateSparklineData = (basePrice = 100, points = 20) => {
+  const data = [];
+  let currentPrice = basePrice;
+  
+  for (let i = 0; i < points; i++) {
+    // Add some random variation (-2% to +2%)
+    const variation = (Math.random() - 0.5) * 0.04 * currentPrice;
+    currentPrice = Math.max(currentPrice + variation, basePrice * 0.8); // Prevent negative prices
+    data.push(parseFloat(currentPrice.toFixed(2)));
+  }
+  
+  return data;
+};
+
 import {
   collection,
   doc,
@@ -137,6 +157,7 @@ export const getUserWatchlist = async (userId) => {
         price: 576.81, 
         change: 1.84, 
         changePercent: 0.32,
+        sparklineData: generateSparklineData(576.81),
         addedAt: new Date()
       },
       { 
@@ -146,6 +167,7 @@ export const getUserWatchlist = async (userId) => {
         price: 343.01, 
         change: 3.63, 
         changePercent: 1.07,
+        sparklineData: generateSparklineData(343.01),
         addedAt: new Date()
       }
     ];
@@ -182,6 +204,7 @@ export const getUserWatchlist = async (userId) => {
         price: 576.81, 
         change: 1.84, 
         changePercent: 0.32,
+        sparklineData: generateSparklineData(576.81),
         addedAt: new Date()
       },
       { 
@@ -191,6 +214,7 @@ export const getUserWatchlist = async (userId) => {
         price: 343.01, 
         change: 3.63, 
         changePercent: 1.07,
+        sparklineData: generateSparklineData(343.01),
         addedAt: new Date()
       }
     ];
@@ -212,14 +236,16 @@ export const subscribeToWatchlist = (userId, callback) => {
         companyName: 'Adobe, Inc', 
         price: 576.81, 
         change: 1.84, 
-        changePercent: 0.32 
+        changePercent: 0.32,
+        sparklineData: generateSparklineData(576.81)
       },
       { 
         ticker: 'FB', 
         companyName: 'Facebook, Inc', 
         price: 343.01, 
         change: 3.63, 
-        changePercent: 1.07 
+        changePercent: 1.07,
+        sparklineData: generateSparklineData(343.01)
       }
     ];
     setTimeout(() => callback(mockWatchlist), 100);
@@ -280,9 +306,9 @@ export const isInWatchlist = async (userId, ticker) => {
 export const getTrendingStocks = async () => {
   // Mock trending stocks data
   return [
-    { ticker: 'AMZN', companyName: 'Amazon, Inc', price: 3283.26, change: -1.61, changePercent: -0.05 },
-    { ticker: 'NFLX', companyName: 'Netflix, Inc', price: 88.91, change: 1.13, changePercent: 1.29 },
-    { ticker: 'TSLA', companyName: 'Tesla, Inc', price: 245.60, change: -8.30, changePercent: -3.27 },
-    { ticker: 'MSFT', companyName: 'Microsoft Corp', price: 330.45, change: 5.75, changePercent: 1.77 }
+    { ticker: 'AMZN', companyName: 'Amazon, Inc', price: 3283.26, change: -1.61, changePercent: -0.05, sparklineData: generateSparklineData(3283.26) },
+    { ticker: 'NFLX', companyName: 'Netflix, Inc', price: 88.91, change: 1.13, changePercent: 1.29, sparklineData: generateSparklineData(88.91) },
+    { ticker: 'TSLA', companyName: 'Tesla, Inc', price: 245.60, change: -8.30, changePercent: -3.27, sparklineData: generateSparklineData(245.60) },
+    { ticker: 'MSFT', companyName: 'Microsoft Corp', price: 330.45, change: 5.75, changePercent: 1.77, sparklineData: generateSparklineData(330.45) }
   ];
 };
