@@ -62,6 +62,11 @@ export const registerUser = async (email, password, displayName) => {
       displayName: displayName
     });
     console.log('✅ Profile updated');
+    
+    // Wait a moment to ensure the profile update propagates
+    // This prevents race conditions with auth state listeners
+    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log('✅ Profile update propagated');
 
     if (db) {
       console.log('💾 Creating user document in Firestore...');

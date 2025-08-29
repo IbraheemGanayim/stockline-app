@@ -79,13 +79,26 @@ export const AuthProvider = ({ children }) => {
     
     if (firebaseUser) {
       try {
+        // For new users, the displayName might not be immediately available
+        // Let's wait a bit and retry if needed
+        let displayName = firebaseUser.displayName;
+        
+        // If displayName is missing, wait a moment and check again
+        // This handles the case where profile update hasn't propagated yet
+        if (!displayName) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Refresh the user to get updated profile
+          await firebaseUser.reload();
+          displayName = firebaseUser.displayName;
+        }
+        
         // Get additional user data from Firestore
         const userDoc = await getUserDocument(firebaseUser.uid);
         
         const userData = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          displayName: firebaseUser.displayName || userDoc?.displayName || '',
+          displayName: displayName || userDoc?.displayName || '',
           emailVerified: firebaseUser.emailVerified,
           photoURL: firebaseUser.photoURL || userDoc?.photoURL || null,
           createdAt: userDoc?.createdAt || null,
