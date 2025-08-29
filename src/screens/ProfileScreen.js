@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components';
 import { useAuthUser } from '../hooks';
 import { useAuth } from '../contexts/AuthProvider';
+import { useTheme } from '../contexts/ThemeProvider';
 import { updateUserProfile, getUserProfile } from '../services/db';
 import { getImageFromFirestore } from '../services/storage';
 import { theme } from '../theme';
@@ -28,6 +29,7 @@ import { theme } from '../theme';
  * @param {Object} navigation - React Navigation object
  */
 const ProfileScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   const { user } = useAuthUser();
   const { signOut } = useAuth();
   const [actualPhotoData, setActualPhotoData] = useState(null);
@@ -169,12 +171,12 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const ProfileMenuItem = ({ icon, title, value, onPress, showChevron = true }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.cardBackground }]} onPress={onPress}>
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIcon}>
           <Ionicons name={icon} size={20} color={theme.colors.primary.main} />
         </View>
-        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={[styles.menuTitle, { color: colors.textPrimary }]}>{title}</Text>
       </View>
       <View style={styles.menuItemRight}>
         {value && <Text style={styles.menuValue}>{value}</Text>}
@@ -186,9 +188,9 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   return (
-    <Screen padding={false} scrollable={true} style={styles.container}>
+    <Screen padding={false} scrollable={true} style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Profile Header */}
-        <View style={styles.profileHeader}>
+        <View style={[styles.profileHeader, { backgroundColor: colors.cardBackground }]}>
           <View style={styles.userInfo}>
             <View style={styles.avatar}>
               {isLoadingPhoto ? (
@@ -207,14 +209,14 @@ const ProfileScreen = ({ navigation }) => {
               )}
             </View>
             <View style={styles.userDetails}>
-              <Text style={styles.userName}>
+              <Text style={[styles.userName, { color: colors.textPrimary }]}>
                 {user?.displayName || 'User'}
               </Text>
-              <Text style={styles.userEmail}>
+              <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
                 {user?.email || 'user@example.com'}
               </Text>
               {userPhoneNumber && (
-                <Text style={styles.userPhone}>
+                <Text style={[styles.userPhone, { color: colors.textSecondary }]}>
                   {userPhoneNumber}
                 </Text>
               )}
@@ -271,7 +273,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.cardBackground }]} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={24} color={theme.colors.error.main} />
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
@@ -282,10 +284,10 @@ const ProfileScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F9FA',
+    // backgroundColor is now dynamic from theme
   },
   profileHeader: {
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 32,
@@ -320,16 +322,16 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
   },
   userPhone: {
     fontSize: 14,
-    color: theme.colors.text.tertiary,
+    // color is now dynamic from theme
     marginTop: 2,
   },
   inviteCard: {
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   menuItem: {
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -404,7 +406,7 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
   },
   menuItemRight: {
     flexDirection: 'row',
@@ -420,7 +422,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   logoutButton: {
-    backgroundColor: 'white',
+    // backgroundColor is now dynamic from theme
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

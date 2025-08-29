@@ -1,5 +1,5 @@
 /**
- * PrimaryButton component - Main action button with loading and disabled states
+ * PrimaryButton component - Main action button with loading and disabled states and theme support
  * Styled according to Stockline design system
  * @author Ibraheem Ganayim
  */
@@ -12,6 +12,7 @@ import {
   StyleSheet 
 } from 'react-native';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeProvider';
 
 /**
  * PrimaryButton component with loading and disabled states
@@ -40,6 +41,7 @@ const PrimaryButton = ({
   fullWidth = false,
   ...props
 }) => {
+  const { colors } = useTheme();
   const isDisabled = disabled || loading;
 
   const getButtonStyle = () => {
@@ -52,26 +54,26 @@ const PrimaryButton = ({
     switch (variant) {
       case 'secondary':
         baseStyle.push(
-          styles.secondaryButton,
-          isDisabled && styles.secondaryButtonDisabled
+          { backgroundColor: theme.colors.secondary.main, borderColor: theme.colors.secondary.main },
+          isDisabled && { backgroundColor: theme.colors.neutral[300], borderColor: theme.colors.neutral[300] }
         );
         break;
       case 'outline':
         baseStyle.push(
-          styles.outlineButton,
-          isDisabled && styles.outlineButtonDisabled
+          { backgroundColor: 'transparent', borderColor: colors.buttonPrimary },
+          isDisabled && { backgroundColor: 'transparent', borderColor: theme.colors.neutral[300] }
         );
         break;
       case 'text':
         baseStyle.push(
-          styles.textButton,
-          isDisabled && styles.textButtonDisabled
+          { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: theme.spacing.sm },
+          isDisabled && { backgroundColor: 'transparent', borderColor: 'transparent' }
         );
         break;
       default: // primary
         baseStyle.push(
-          styles.primaryButton,
-          isDisabled && styles.primaryButtonDisabled
+          { backgroundColor: colors.buttonPrimary, borderColor: colors.buttonPrimary },
+          isDisabled && { backgroundColor: theme.colors.neutral[300], borderColor: theme.colors.neutral[300] }
         );
     }
 
@@ -88,26 +90,26 @@ const PrimaryButton = ({
     switch (variant) {
       case 'secondary':
         baseStyle.push(
-          styles.secondaryText,
-          isDisabled && styles.secondaryTextDisabled
+          { color: theme.colors.neutral.white },
+          isDisabled && { color: theme.colors.text.disabled }
         );
         break;
       case 'outline':
         baseStyle.push(
-          styles.outlineText,
-          isDisabled && styles.outlineTextDisabled
+          { color: colors.buttonPrimary },
+          isDisabled && { color: theme.colors.neutral[400] }
         );
         break;
       case 'text':
         baseStyle.push(
-          styles.textButtonText,
-          isDisabled && styles.textButtonTextDisabled
+          { color: colors.buttonPrimary },
+          isDisabled && { color: theme.colors.neutral[400] }
         );
         break;
       default: // primary
         baseStyle.push(
-          styles.primaryText,
-          isDisabled && styles.primaryTextDisabled
+          { color: colors.buttonText },
+          isDisabled && { color: theme.colors.text.disabled }
         );
     }
 
@@ -122,11 +124,11 @@ const PrimaryButton = ({
     switch (variant) {
       case 'secondary':
       case 'outline':
-        return '#33D49D';
+        return colors.buttonPrimary;
       case 'text':
-        return '#33D49D';
+        return colors.buttonPrimary;
       default: // primary
-        return '#FFFFFF';
+        return colors.buttonText;
     }
   };
 

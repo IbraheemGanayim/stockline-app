@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ValidationInput, SuccessAnimation, PrimaryButton, StocklineLogo, BackgroundElements } from '../components';
 
 import { useAuth } from '../contexts/AuthProvider';
+import { useTheme } from '../contexts/ThemeProvider';
 import { validateEmail, getFirebaseErrorMessage } from '../utils/validation';
 import { runFirebaseConnectionTest } from '../services/connectionTest';
 import { theme } from '../theme';
@@ -29,6 +30,7 @@ import { theme } from '../theme';
  */
 const LoginScreen = ({ navigation }) => {
   const { signIn, loading } = useAuth();
+  const { colors, isDark } = useTheme();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -142,7 +144,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <BackgroundElements />
       <KeyboardAvoidingView
         style={styles.container}
@@ -158,12 +160,12 @@ const LoginScreen = ({ navigation }) => {
         {/* Header with Logo/Icon */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <StocklineLogo size={80} color="#33D49D" />
+            <StocklineLogo size={80} color={colors.buttonPrimary} />
           </View>
-                      <Text style={styles.title}>Hi There! 👋</Text>
-            <Text style={styles.subtitle}>
-              Welcome back, Sign in to your account
-            </Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Hi There! 👋</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Welcome back, Sign in to your account
+          </Text>
         </View>
 
         {/* Form Section */}
@@ -195,11 +197,11 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           {generalError ? (
-            <View style={styles.errorContainer}>
+            <View style={[styles.errorContainer, { backgroundColor: isDark ? colors.cardBackground : '#FFFBEB', borderColor: colors.error }]}>
               <View style={styles.errorIconContainer}>
-                <Ionicons name="information-circle" size={20} color="#F59E0B" />
+                <Ionicons name="information-circle" size={20} color={colors.error} />
               </View>
-              <Text style={styles.errorText}>{generalError}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>{generalError}</Text>
             </View>
           ) : null}
 
@@ -215,24 +217,24 @@ const LoginScreen = ({ navigation }) => {
 
           {/* Forgot Password */}
           <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            <Text style={[styles.forgotPasswordText, { color: colors.buttonPrimary }]}>Forgot password?</Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>Or login with</Text>
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>Or login with</Text>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
           </View>
 
           {/* Social Login Buttons */}
           <View style={styles.socialContainer}>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <Ionicons name="logo-google" size={24} color="#4285F4" />
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={24} color="#000000" />
+            <TouchableOpacity style={[styles.socialButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Ionicons name="logo-apple" size={24} color={isDark ? colors.textPrimary : "#000000"} />
             </TouchableOpacity>
           </View>
 
@@ -240,11 +242,11 @@ const LoginScreen = ({ navigation }) => {
 
            {/* Sign Up Link */}
            <View style={styles.signupContainer}>
-             <Text style={styles.signupText}>
+             <Text style={[styles.signupText, { color: colors.textSecondary }]}>
                Don't have an account?{' '}
              </Text>
              <TouchableOpacity onPress={navigateToSignup} disabled={loading}>
-               <Text style={styles.signInText}>Sign Up</Text>
+               <Text style={[styles.signInText, { color: colors.buttonPrimary }]}>Sign Up</Text>
              </TouchableOpacity>
            </View>
           </View>
@@ -264,8 +266,8 @@ const LoginScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    flex: 1
+    // backgroundColor is now dynamic from theme
   },
   container: {
     flex: 1,
@@ -292,16 +294,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#4B5563', // Dark grey
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: 'center'
+    // color is now dynamic from theme
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 20
+    // color is now dynamic from theme
   },
   highlightText: {
     color: '#33D49D',
@@ -325,20 +327,18 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FFFBEB',
     padding: 16,
     borderRadius: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FDE68A',
-    shadowColor: '#F59E0B',
     shadowOffset: {
       width: 0,
       height: 2,
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 2
+    // backgroundColor, borderColor, and shadowColor are now dynamic from theme
   },
   errorIconContainer: {
     marginRight: 12,
@@ -346,10 +346,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 15,
-    color: '#92400E',
     flex: 1,
     lineHeight: 22,
-    fontWeight: '500',
+    fontWeight: '500'
+    // color is now dynamic from theme
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -358,13 +358,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
+    height: 1
+    // backgroundColor is now dynamic from theme
   },
   dividerText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    marginHorizontal: 16,
+    marginHorizontal: 16
+    // color is now dynamic from theme
   },
   socialContainer: {
     flexDirection: 'row',
@@ -376,11 +376,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F8F9FA',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1
+    // backgroundColor and borderColor are now dynamic from theme
   },
   signupContainer: {
     flexDirection: 'row',
@@ -390,13 +389,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   signupText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 16
+    // color is now dynamic from theme
   },
   signInText: {
     fontSize: 16,
-    color: '#33D49D',
-    fontWeight: '600',
+    fontWeight: '600'
+    // color is now dynamic from theme
   },
   forgotPassword: {
     marginTop: 16,
@@ -404,8 +403,8 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 16,
-    color: '#33D49D',
-    fontWeight: '500',
+    fontWeight: '500'
+    // color is now dynamic from theme
   },
 });
 

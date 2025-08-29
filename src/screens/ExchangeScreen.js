@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { PrimaryButton, SuccessAnimation } from '../components';
 import { usePortfolio, useAuthUser, useTransactions } from '../hooks';
+import { useTheme } from '../contexts/ThemeProvider';
 import { executeTransaction } from '../services/transactions';
 import { theme } from '../theme';
 
@@ -186,6 +187,7 @@ const CompanyIcon = ({ ticker, size = 40 }) => {
 
 const ExchangeScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const { user } = useAuthUser();
   const { portfolio, refreshPortfolio } = usePortfolio();
   const { addTransaction } = useTransactions();
@@ -367,7 +369,11 @@ const ExchangeScreen = ({ navigation, route }) => {
 
   const TradingInput = ({ label, value, isActive, onPress }) => (
     <Pressable
-      style={[styles.stockInput, isActive && styles.stockInputActive]}
+      style={[
+        styles.stockInput, 
+        { backgroundColor: colors.cardBackground },
+        isActive && styles.stockInputActive
+      ]}
       onPress={onPress}
     >
       <TouchableOpacity 
@@ -380,8 +386,8 @@ const ExchangeScreen = ({ navigation, route }) => {
         activeOpacity={label === 'Amount' ? 0.7 : 1}
         disabled={label !== 'Amount'}
       >
-        <Text style={styles.inputLabel}>{label}</Text>
-        <Text style={styles.amountText}>
+        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[styles.amountText, { color: colors.textPrimary }]}>
           {label === 'Amount' ? `$${value}` : `${value} shares`}
         </Text>
       </TouchableOpacity>
@@ -389,8 +395,8 @@ const ExchangeScreen = ({ navigation, route }) => {
       <View style={styles.stockRight}>
         <CompanyIcon ticker={selectedStockData.ticker} size={40} />
         <View style={styles.stockInfo}>
-          <Text style={styles.stockSymbol}>{selectedStockData.ticker}</Text>
-          <Text style={styles.stockPrice}>${selectedStockData.price?.toFixed(2)}</Text>
+          <Text style={[styles.stockSymbol, { color: colors.textPrimary }]}>{selectedStockData.ticker}</Text>
+          <Text style={[styles.stockPrice, { color: colors.textSecondary }]}>${selectedStockData.price?.toFixed(2)}</Text>
         </View>
         <TouchableOpacity 
           style={styles.dropdownButton}
@@ -411,7 +417,7 @@ const ExchangeScreen = ({ navigation, route }) => {
       onPress={() => onPress(value)}
       activeOpacity={0.3}
     >
-      <Text style={[styles.numpadButtonText, textStyle]}>{value}</Text>
+      <Text style={[styles.numpadButtonText, { color: colors.textPrimary }, textStyle]}>{value}</Text>
     </TouchableOpacity>
   );
 
@@ -422,32 +428,36 @@ const ExchangeScreen = ({ navigation, route }) => {
       paddingTop: insets.top,
     }]}>
         <LinearGradient
-          colors={['#FFFFFF', '#F8F9FA', '#F1F3F4']}
+          colors={isDark ? [colors.background, colors.cardBackground, colors.background] : ['#FFFFFF', '#F8F9FA', '#F1F3F4']}
           style={styles.backgroundGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         />
         
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.cardBackground }]}>
           <TouchableOpacity 
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: colors.inputBackground }]}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Exchange</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Exchange</Text>
           <View style={styles.placeholder} />
         </View>
 
-        <View style={[styles.container, { paddingBottom: Math.max(insets.bottom + 80, 100) }]}>
+        <View style={[styles.container, { backgroundColor: colors.background, paddingBottom: Math.max(insets.bottom + 80, 100) }]}>
           {/* Buy/Sell Tabs */}
-        <View style={styles.tabContainer}>
+        <View style={[styles.tabContainer, { backgroundColor: colors.inputBackground }]}>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'buy' && styles.activeTab]}
             onPress={() => handleTabChange('buy')}
           >
-            <Text style={[styles.tabText, activeTab === 'buy' && styles.activeTabText]}>
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === 'buy' ? '#FFFFFF' : colors.textSecondary },
+              activeTab === 'buy' && styles.activeTabText
+            ]}>
               Buy
             </Text>
           </TouchableOpacity>
@@ -455,7 +465,11 @@ const ExchangeScreen = ({ navigation, route }) => {
             style={[styles.tab, activeTab === 'sell' && styles.activeTab]}
             onPress={() => handleTabChange('sell')}
           >
-            <Text style={[styles.tabText, activeTab === 'sell' && styles.activeTabText]}>
+            <Text style={[
+              styles.tabText, 
+              { color: activeTab === 'sell' ? '#FFFFFF' : colors.textSecondary },
+              activeTab === 'sell' && styles.activeTabText
+            ]}>
               Sell
             </Text>
           </TouchableOpacity>
@@ -522,7 +536,7 @@ const ExchangeScreen = ({ navigation, route }) => {
                 onLongPress={handleClear}
                 activeOpacity={0.3}
               >
-                <Ionicons name="close" size={24} color={theme.colors.text.primary} />
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -531,6 +545,7 @@ const ExchangeScreen = ({ navigation, route }) => {
 
         {/* Action Button - Fixed at bottom */}
         <View style={[styles.actionContainer, { 
+          backgroundColor: colors.cardBackground,
           paddingBottom: Math.max(insets.bottom + 12, 24),
           bottom: 0
         }]}>
@@ -554,7 +569,7 @@ const ExchangeScreen = ({ navigation, route }) => {
         {/* Loading Overlay */}
         {loading && (
           <View style={styles.loadingOverlay}>
-            <View style={styles.loadingContainer}>
+            <View style={[styles.loadingContainer, { backgroundColor: colors.cardBackground }]}>
               <ActivityIndicator size="large" color={theme.colors.primary.main} />
               <Text style={styles.loadingText}>Processing trade...</Text>
             </View>
@@ -570,7 +585,7 @@ const ExchangeScreen = ({ navigation, route }) => {
             onRequestClose={() => setShowAmountSelector(false)}
           >
             <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
+              <View style={[styles.modalContainer, { backgroundColor: colors.cardBackground }]}>
                 {/* Header */}
                 <View style={styles.modalHeader}>
                   <TouchableOpacity onPress={() => setShowAmountSelector(false)}>
@@ -660,8 +675,8 @@ const ExchangeScreen = ({ navigation, route }) => {
           animationType="slide"
           onRequestClose={() => setShowStockSelector(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
+                      <View style={styles.modalOverlay}>
+              <View style={[styles.modalContainer, { backgroundColor: colors.cardBackground }]}>
               <View style={styles.modalHeader}>
                 <TouchableOpacity onPress={() => setShowStockSelector(false)}>
                   <Ionicons name="close" size={24} color={theme.colors.text.primary} />
@@ -731,7 +746,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     borderBottomWidth: 0,
     elevation: 0,
     shadowOpacity: 0,
@@ -742,7 +757,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
-    backgroundColor: '#F8F9FA',
+    // backgroundColor is now dynamic from theme
   },
   title: {
     fontSize: 20,
@@ -755,12 +770,12 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    // backgroundColor is now dynamic from theme
     minHeight: 0, // Prevent overflow
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F1F3F4',
+    // backgroundColor is now dynamic from theme
     marginHorizontal: 28,
     marginTop: 12,
     marginBottom: 20,
@@ -790,7 +805,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#8A8A8E',
+    // color is now dynamic from theme
   },
   activeTabText: {
     color: '#FFFFFF',
@@ -802,7 +817,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   stockInput: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     borderRadius: 20,
     borderWidth: 3,
     borderColor: 'transparent',
@@ -840,7 +855,7 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 18,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     letterSpacing: -0.2,
     flexShrink: 1,
     numberOfLines: 1,
@@ -886,7 +901,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.colors.text.secondary,
+    // color is now dynamic from theme
     marginBottom: 4,
   },
   stockPrice: {
@@ -903,7 +918,7 @@ const styles = StyleSheet.create({
   stockSymbol: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
     marginRight: 6,
     letterSpacing: -0.3,
   },
@@ -963,7 +978,7 @@ const styles = StyleSheet.create({
   numpadButtonText: {
     fontSize: Math.min(screenWidth * 0.08, 32),
     fontWeight: '300',
-    color: theme.colors.text.primary,
+    // color is now dynamic from theme
   },
   deleteButton: {
     backgroundColor: 'transparent',
@@ -974,7 +989,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 24,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     paddingTop: 16,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -1023,7 +1038,7 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     padding: 32,
     borderRadius: 16,
     shadowColor: '#000',
@@ -1048,7 +1063,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is now dynamic from theme
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,

@@ -11,6 +11,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, TouchableOpacity, StyleSheet, Platform, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../contexts/ThemeProvider';
 
 import HomeScreen from '../screens/HomeScreen';
 import MarketScreen from '../screens/MarketScreen';
@@ -38,6 +39,7 @@ const Tab = createBottomTabNavigator();
  * Bottom Tab Navigator for main app screens
  */
 const TabNavigator = () => {
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   
   return (
@@ -70,12 +72,12 @@ const TabNavigator = () => {
 
           return <IconComponent name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: theme.colors.primary.main,
-        tabBarInactiveTintColor: theme.colors.neutral[500],
+        tabBarActiveTintColor: colors.buttonPrimary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: theme.colors.background.primary,
-          borderTopColor: 'transparent',
-          borderTopWidth: 0,
+          backgroundColor: colors.cardBackground,
+          borderTopColor: colors.border,
+          borderTopWidth: isDark ? 1 : 0,
           paddingTop: 12,
           paddingBottom: Math.max(insets.bottom, 12),
           height: 80 + Math.max(insets.bottom, 12),
@@ -101,16 +103,16 @@ const TabNavigator = () => {
           paddingTop: route.name === 'Transactions' ? 0 : 8,
         },
         headerStyle: {
-          backgroundColor: theme.colors.background.primary,
+          backgroundColor: colors.background,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 0,
         },
-        headerTintColor: theme.colors.text.primary,
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontWeight: '700',
           fontSize: 20,
-          color: theme.colors.text.primary,
+          color: colors.textPrimary,
           letterSpacing: -0.5,
         }
       })}
@@ -151,7 +153,7 @@ const TabNavigator = () => {
                 style={[styles.fabButton, props.accessibilityState?.selected && styles.fabButtonSelected]}
                 activeOpacity={0.8}
               >
-                <View style={styles.fabContainer}>
+                <View style={[styles.fabContainer, { backgroundColor: colors.cardBackground }]}>
                   <LinearGradient
                     colors={[theme.colors.primary.light, theme.colors.primary.main, theme.colors.primary.dark]}
                     style={styles.fab}
@@ -193,26 +195,28 @@ const TabNavigator = () => {
  * AppStack component - Main navigation stack for authenticated users
  */
 const AppStack = () => {
+  const { colors } = useTheme();
+  
   return (
     <FirstTimeUserWrapper>
       <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.background,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: '#E5E7EB'
+          borderBottomColor: colors.border
         },
-        headerTintColor: '#1A1A1A',
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontWeight: '600',
           fontSize: 18,
-          color: '#1A1A1A'
+          color: colors.textPrimary
         },
         headerBackTitleVisible: false,
         cardStyle: {
-          backgroundColor: '#FFFFFF'
+          backgroundColor: colors.background
         }
       }}
     >
@@ -329,8 +333,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     borderRadius: 32,
-    padding: 2, // White border effect
-    backgroundColor: '#FFFFFF',
+    padding: 2, // Border effect
+    // backgroundColor: '#FFFFFF', // Will be set dynamically
   },
   fab: {
     width: 64,

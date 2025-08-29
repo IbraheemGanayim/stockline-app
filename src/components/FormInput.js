@@ -1,5 +1,5 @@
 /**
- * FormInput component - Simple and reliable input field
+ * FormInput component - Simple and reliable input field with theme support
  * Designed to work perfectly without focus issues
  * @author Ibraheem Ganayim
  */
@@ -13,6 +13,7 @@ import {
   StyleSheet 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeProvider';
 
 /**
  * Simple FormInput component that always works
@@ -29,6 +30,7 @@ const FormInput = ({
   style,
   ...props
 }) => {
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -38,15 +40,26 @@ const FormInput = ({
     <View style={[styles.container, style]}>
       <View style={[
         styles.inputContainer,
-        isFocused && styles.inputContainerFocused,
-        hasError && styles.inputContainerError
+        { 
+          backgroundColor: colors.inputBackground,
+          borderColor: colors.border
+        },
+        isFocused && {
+          backgroundColor: colors.inputBackground,
+          borderColor: colors.buttonPrimary,
+          shadowColor: colors.buttonPrimary,
+        },
+        hasError && {
+          borderColor: colors.error,
+          backgroundColor: colors.inputBackground,
+        }
       ]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.textPrimary }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textSecondary}
           secureTextEntry={secureTextEntry && !showPassword}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -66,14 +79,14 @@ const FormInput = ({
             <Ionicons 
               name={showPassword ? 'eye-off' : 'eye'} 
               size={20} 
-              color="#9CA3AF" 
+              color={colors.textSecondary} 
             />
           </TouchableOpacity>
         )}
       </View>
       
       {hasError && (
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
       )}
     </View>
   );
@@ -86,17 +99,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F1F1F1',
     minHeight: 56,
     paddingHorizontal: 16,
-  },
-  inputContainerFocused: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#70C7A0',
-    shadowColor: '#70C7A0',
+    // backgroundColor and borderColor are now dynamic from theme
     shadowOffset: {
       width: 0,
       height: 2,
@@ -105,16 +112,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  inputContainerError: {
-    borderColor: '#FF6B6B',
-    backgroundColor: '#FFF5F5',
-  },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#1A1A1A',
     fontWeight: '400',
     paddingVertical: 16,
+    // color is now dynamic from theme
   },
   passwordToggle: {
     paddingLeft: 12,
@@ -122,10 +125,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    color: '#FF6B6B',
     marginTop: 8,
     marginLeft: 4,
     fontWeight: '500',
+    // color is now dynamic from theme
   }
 });
 

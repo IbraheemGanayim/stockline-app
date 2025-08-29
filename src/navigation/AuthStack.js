@@ -10,6 +10,7 @@ import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeProvider';
 
 const Stack = createStackNavigator();
 
@@ -17,18 +18,20 @@ const Stack = createStackNavigator();
  * AuthStack component - Navigation stack for authentication flow
  */
 const AuthStack = () => {
+  const { colors } = useTheme();
+  
   return (
     <Stack.Navigator
       initialRouteName="Login"
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.background.primary,
+          backgroundColor: colors.background,
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: theme.colors.border.light
+          borderBottomColor: colors.border
         },
-        headerTintColor: theme.colors.text.primary,
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontWeight: theme.typography.fontWeight.semiBold,
           fontSize: theme.typography.fontSize.lg,
@@ -36,7 +39,7 @@ const AuthStack = () => {
         },
         headerBackTitleVisible: false,
         cardStyle: {
-          backgroundColor: theme.colors.background.primary
+          backgroundColor: colors.background
         }
       }}
     >
@@ -53,8 +56,7 @@ const AuthStack = () => {
         component={SignupScreen}
         options={{
           title: 'Create Account',
-          headerShown: true,
-          headerLeft: null, // Remove back button to force users to complete signup
+          headerShown: false, // Hide header for signup to make it full screen like login
           gestureEnabled: false // Disable swipe back gesture
         }}
       />

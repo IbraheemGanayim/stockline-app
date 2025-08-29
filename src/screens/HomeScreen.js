@@ -19,8 +19,10 @@ import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-ico
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen, PortfolioCard, StockCard, SectionHeader, StockSearchModal } from '../components';
 import { usePortfolio, useWatchlist } from '../hooks';
+import { useTheme } from '../contexts/ThemeProvider';
 import { getTrendingStocks } from '../services/watchlist';
 import { theme } from '../theme';
+import { lightColors, darkColors } from '../theme/colors';
 
 /**
  * Company icons mapping with multiple fallback options
@@ -103,6 +105,7 @@ const COMPANY_ICONS = {
  * @param {Object} navigation - React Navigation object
  */
 const HomeScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   // Use Firebase hooks for real-time data
   const { portfolio, loading: portfolioLoading } = usePortfolio();
   const { watchlist, addStock: addToWatchlist, removeStock: removeFromWatchlist } = useWatchlist();
@@ -187,6 +190,49 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // Helper function to determine if a color is light
+  const isLightColor = (color) => {
+    if (!color) return false;
+    // Convert hex to RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate luminance (0 = black, 255 = white)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+    return luminance > 186; // threshold for "light" colors
+  };
+
+  // Helper function to get theme-appropriate background color
+  const getIconBackgroundColor = (originalBgColor) => {
+    if (!isDark) return originalBgColor;
+    
+    // In dark mode, replace light colors with dark alternatives
+    if (isLightColor(originalBgColor)) {
+      return colors.cardBackground; // Use theme's card background for consistency
+    }
+    
+    return originalBgColor; // Keep dark colors as they are
+  };
+
+  // Helper function to get theme-appropriate icon color for contrast
+  const getIconColor = (originalColor, backgroundColor) => {
+    if (!isDark) return originalColor;
+    
+    // If we're using a dark background in dark mode and the original color is dark,
+    // we need to ensure good contrast
+    if (isLightColor(backgroundColor)) {
+      return originalColor; // Light background, keep original color
+    } else {
+      // Dark background, ensure the icon color is visible
+      if (!isLightColor(originalColor)) {
+        return colors.textPrimary; // Use theme's primary text color for visibility
+      }
+      return originalColor;
+    }
+  };
+
   // Company Icon component with fallback support
   const CompanyIcon = ({ ticker, size = 40 }) => {
     const [imageError, setImageError] = useState(false);
@@ -196,13 +242,17 @@ const HomeScreen = ({ navigation }) => {
       // Fallback to default icon
       const fallback = iconConfig?.fallback || { type: 'text', text: ticker[0] };
       
+      // Use theme-aware background color for fallback icons
+      const fallbackBgColor = getIconBackgroundColor(iconConfig?.backgroundColor) || colors.buttonPrimary + '20';
+      const fallbackIconColor = getIconColor(iconConfig?.color || colors.buttonPrimary, fallbackBgColor);
+      
       return (
         <View style={[
           styles.companyIcon,
           { 
             width: size, 
             height: size,
-            backgroundColor: iconConfig?.backgroundColor || theme.colors.primary.light 
+            backgroundColor: fallbackBgColor 
           }
         ]}>
           {fallback.type === 'icon' ? (
@@ -210,13 +260,13 @@ const HomeScreen = ({ navigation }) => {
               <FontAwesome5 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             ) : (
               <MaterialCommunityIcons 
                 name={fallback.name} 
                 size={size * 0.5} 
-                color={iconConfig?.color || theme.colors.primary.main} 
+                color={fallbackIconColor} 
               />
             )
           ) : (
@@ -224,7 +274,7 @@ const HomeScreen = ({ navigation }) => {
               styles.companyIconText,
               { 
                 fontSize: size * 0.4,
-                color: iconConfig?.color || theme.colors.primary.main,
+                color: fallbackIconColor,
                 fontWeight: fallback.font === 'bold' ? '700' : '600'
               }
             ]}>
@@ -236,13 +286,16 @@ const HomeScreen = ({ navigation }) => {
     }
 
     // Try to load company logo image
+    // Use theme-aware background color for image icons
+    const imageBgColor = getIconBackgroundColor(iconConfig.backgroundColor);
+    
     return (
       <View style={[
         styles.companyIcon,
         { 
           width: size, 
           height: size,
-          backgroundColor: iconConfig.backgroundColor 
+          backgroundColor: imageBgColor 
         }
       ]}>
         <Image
@@ -256,9 +309,15 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <Screen padding={false} scrollable={true} style={styles.container}>
+    <Screen 
+      padding={false} 
+      scrollable={true} 
+      backgroundColor={colors.background}
+      statusBarStyle={isDark ? 'light-content' : 'dark-content'}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Portfolio Summary Card */}
-        <View style={styles.portfolioSummaryContainer}>
+        <View style={[styles.portfolioSummaryContainer, { backgroundColor: colors.cardBackground }]}>
           <PortfolioCard 
             totalValue={portfolio.totalValue}
             dailyChange={portfolio.dailyChangePercent}
@@ -273,30 +332,30 @@ const HomeScreen = ({ navigation }) => {
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('Transactions')}
             >
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="swap-horizontal" size={24} color={theme.colors.primary.main} />
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
+                <Ionicons name="swap-horizontal" size={24} color={colors.buttonPrimary} />
               </View>
-              <Text style={styles.quickActionText}>Trade</Text>
+              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Trade</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('Market')}
             >
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="trending-up" size={24} color={theme.colors.primary.main} />
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
+                <Ionicons name="trending-up" size={24} color={colors.buttonPrimary} />
               </View>
-              <Text style={styles.quickActionText}>Market</Text>
+              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Market</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('Portfolio')}
             >
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="pie-chart" size={24} color={theme.colors.primary.main} />
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
+                <Ionicons name="pie-chart" size={24} color={colors.buttonPrimary} />
               </View>
-              <Text style={styles.quickActionText}>Portfolio</Text>
+              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Portfolio</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -322,7 +381,7 @@ const HomeScreen = ({ navigation }) => {
                 onPress={() => handleStockPress(stock)}
                 showChart={true}
                 customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
-                iconBackgroundColor={iconConfig?.backgroundColor}
+                iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
               />
             );
           })}
@@ -334,8 +393,20 @@ const HomeScreen = ({ navigation }) => {
             title="Watchlist" 
             showIndicator={true}
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddToWatchlist}>
-            <Ionicons name="add" size={24} color={theme.colors.text.primary} />
+          <TouchableOpacity 
+            style={[
+              styles.addButton, 
+              { 
+                backgroundColor: colors.cardBackground,
+                borderWidth: 1,
+                borderColor: colors.border,
+                shadowColor: '#000',
+                shadowOpacity: isDark ? 0.3 : 0.1,
+              }
+            ]} 
+            onPress={handleAddToWatchlist}
+          >
+            <Ionicons name="add" size={24} color={colors.buttonPrimary} />
           </TouchableOpacity>
         </View>
         
@@ -356,16 +427,26 @@ const HomeScreen = ({ navigation }) => {
                   onPress={() => handleStockPress(stock)}
                   showChart={true}
                   customIcon={<CompanyIcon ticker={stock.ticker} size={32} />}
-                  iconBackgroundColor={iconConfig?.backgroundColor}
+                  iconBackgroundColor={getIconBackgroundColor(iconConfig?.backgroundColor)}
                 />
               </TouchableOpacity>
             );
           })}
           
           {watchlist.length === 0 && (
-            <View style={styles.emptyWatchlist}>
-              <Text style={styles.emptyText}>No stocks in your watchlist yet</Text>
-              <Text style={styles.emptySubtext}>Tap the + button to add stocks</Text>
+            <View style={[
+              styles.emptyWatchlist, 
+              { 
+                backgroundColor: colors.cardBackground,
+                borderWidth: 1,
+                borderColor: colors.border,
+                shadowColor: '#000',
+                shadowOpacity: isDark ? 0.2 : 0.05,
+              }
+            ]}>
+              <Ionicons name="trending-up-outline" size={48} color={colors.textSecondary} style={{ marginBottom: 16 }} />
+              <Text style={[styles.emptyText, { color: colors.textPrimary }]}>No stocks in your watchlist yet</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Tap the + button to add stocks</Text>
             </View>
           )}
         </View>
@@ -383,10 +464,10 @@ const HomeScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F9FA',
+    // backgroundColor is now dynamic from theme
   },
   portfolioSummaryContainer: {
-    backgroundColor: theme.colors.background.primary,
+    // backgroundColor is now dynamic from theme
     paddingBottom: 16,
   },
   quickActionsContainer: {
@@ -403,15 +484,15 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: theme.colors.primary.main + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 8
+    // backgroundColor is now dynamic from theme
   },
   quickActionText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
+    fontWeight: '600'
+    // color is now dynamic from theme
   },
   sectionHeader: {
     marginTop: 8,
@@ -430,7 +511,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -440,7 +520,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 2
+    // backgroundColor is now dynamic from theme
   },
   wishlistContainer: {
     paddingBottom: 20,
@@ -449,7 +530,6 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
     marginHorizontal: 16,
     borderRadius: 12,
     shadowColor: '#000',
@@ -459,17 +539,18 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 2
+    // backgroundColor is now dynamic from theme
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.text.primary,
-    marginBottom: 8,
+    marginBottom: 8
+    // color is now dynamic from theme
   },
   emptySubtext: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
+    fontSize: 14
+    // color is now dynamic from theme
   },
   companyIcon: {
     borderRadius: 8,
