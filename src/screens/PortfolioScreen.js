@@ -4,7 +4,7 @@
  * @author Ibraheem Ganayim
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -14,15 +14,13 @@ import {
   Dimensions,
   TouchableOpacity,
   RefreshControl,
-  Animated,
   Platform,
   Image
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons, MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Screen, MiniChart } from '../components';
+import { Screen, MiniChart, SectionHeader } from '../components';
 import { usePortfolio } from '../hooks';
 import { useTheme } from '../contexts/ThemeProvider';
 import { theme } from '../theme';
@@ -105,13 +103,6 @@ const PortfolioScreen = ({ navigation }) => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [animatedValues] = useState({
-    portfolio: new Animated.Value(0),
-    gainCard: new Animated.Value(0),
-    lossCard: new Animated.Value(0),
-    chart: new Animated.Value(0),
-    stocks: new Animated.Value(0),
-  });
 
   // Real-time clock update
   useEffect(() => {
@@ -121,44 +112,7 @@ const PortfolioScreen = ({ navigation }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Entrance animations
-  useEffect(() => {
-    if (!loading) {
-      const animations = [
-        Animated.timing(animatedValues.portfolio, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValues.gainCard, {
-          toValue: 1,
-          duration: 700,
-          delay: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValues.lossCard, {
-          toValue: 1,
-          duration: 700,
-          delay: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValues.chart, {
-          toValue: 1,
-          duration: 800,
-          delay: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValues.stocks, {
-          toValue: 1,
-          duration: 600,
-          delay: 600,
-          useNativeDriver: true,
-        }),
-      ];
-      
-      Animated.stagger(100, animations).start();
-    }
-  }, [loading]);
+
 
   // Dynamic chart data with realistic fluctuations
   const generateRealtimeChartData = useCallback(() => {
@@ -181,12 +135,12 @@ const PortfolioScreen = ({ navigation }) => {
   const chartData = generateRealtimeChartData();
 
   const chartConfig = {
-    backgroundColor: colors.cardBackground,
-    backgroundGradientFrom: colors.cardBackground,
-    backgroundGradientTo: colors.cardBackground,
+    backgroundColor: isDark ? '#1F2937' : '#F8F9FA',
+    backgroundGradientFrom: isDark ? '#1F2937' : '#F8F9FA',
+    backgroundGradientTo: isDark ? '#1F2937' : '#F8F9FA',
     decimalPlaces: 0,
     color: (opacity = 1) => `rgba(51, 212, 157, ${opacity})`, // buttonPrimary color
-    labelColor: (opacity = 1) => colors.textSecondary,
+    labelColor: (opacity = 1) => isDark ? '#9CA3AF' : '#6B7280',
     style: {
       borderRadius: 16,
     },
@@ -197,11 +151,11 @@ const PortfolioScreen = ({ navigation }) => {
     },
     propsForBackgroundLines: {
       strokeDasharray: '3,3',
-      stroke: colors.border,
+      stroke: isDark ? '#374151' : '#E5E7EB',
       strokeWidth: 1,
     },
     fillShadowGradient: colors.buttonPrimary,
-    fillShadowGradientOpacity: 0.15,
+    fillShadowGradientOpacity: isDark ? 0.2 : 0.15,
   };
 
   // Pull to refresh
@@ -235,37 +189,9 @@ const PortfolioScreen = ({ navigation }) => {
     navigation.navigate('ItemDetails', { stock });
   }, [navigation]);
 
-  // Modern skeleton loader
-  const SkeletonLoader = () => (
-    <View style={styles.skeletonContainer}>
-      <View style={styles.skeletonHeader} />
-      <View style={styles.skeletonValue} />
-      <View style={styles.skeletonCards}>
-        <View style={styles.skeletonCard} />
-        <View style={styles.skeletonCard} />
-      </View>
-      <View style={styles.skeletonChart} />
-    </View>
-  );
 
-  // Animated Number Component
-  const AnimatedNumber = ({ value, prefix = '$', suffix = '' }) => {
-    const animatedValue = useRef(new Animated.Value(0)).current;
-    
-    useEffect(() => {
-      Animated.timing(animatedValue, {
-        toValue: value,
-        duration: 1000,
-        useNativeDriver: false,
-      }).start();
-    }, [value]);
 
-    return (
-      <Animated.Text style={[styles.portfolioValue, { color: colors.textPrimary }]}>
-        {prefix}{value?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}{suffix}
-      </Animated.Text>
-    );
-  };
+
 
   // Company Icon component with fallback support
   const CompanyIcon = ({ ticker, size = 48 }) => {
@@ -379,7 +305,10 @@ const PortfolioScreen = ({ navigation }) => {
   if (loading) {
     return (
       <Screen padding={false} style={styles.container}>
-        <SkeletonLoader />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.buttonPrimary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading portfolio...</Text>
+        </View>
       </Screen>
     );
   }
@@ -415,133 +344,72 @@ const PortfolioScreen = ({ navigation }) => {
         />
       }
     >
-        {/* Live Time Indicator */}
-        <View style={[styles.timeIndicator, { backgroundColor: colors.cardBackground }]}>
-          <View style={styles.liveDot} />
-          <Text style={[styles.liveText, { color: colors.textSecondary }]}>
-            Live • {currentTime.toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </Text>
-        </View>
-
         {/* Portfolio Value Header */}
-        <Animated.View 
-          style={[
-            styles.headerContainer,
-            { backgroundColor: colors.cardBackground },
-            {
-              opacity: animatedValues.portfolio,
-              transform: [{
-                translateY: animatedValues.portfolio.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                })
-              }]
-            }
-          ]}
-        >
+        <View style={styles.portfolioHeaderContainer}>
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={[styles.liveText, { color: colors.textSecondary }]}>
+              Live • {currentTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </Text>
+          </View>
+          
           <Text style={[styles.portfolioLabel, { color: colors.textSecondary }]}>Portfolio value</Text>
           <View style={styles.valueRow}>
-            <AnimatedNumber value={portfolio.totalValue || 13240.11} />
+            <Text style={[styles.portfolioValue, { color: colors.textPrimary }]}>
+              ${(portfolio.totalValue || 13240.11).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </Text>
             <View style={styles.percentageContainer}>
-              <LinearGradient
-                colors={['#4CAF50', '#66BB6A']}
-                style={styles.percentageBadge}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+              <View style={[
+                styles.percentageBadge,
+                { backgroundColor: (portfolio.dailyChangePercent || 1.74) >= 0 ? theme.colors.stock.gain : theme.colors.stock.loss }
+              ]}>
                 <Text style={styles.percentageText}>
-                  +{portfolio.dailyChangePercent?.toFixed(2) || '1.74'}%
+                  {(portfolio.dailyChangePercent || 1.74) >= 0 ? '+' : ''}{(portfolio.dailyChangePercent || 1.74).toFixed(2)}%
                 </Text>
-              </LinearGradient>
-              <TouchableOpacity style={styles.infoIcon}>
-                <Ionicons name="information-circle-outline" size={16} color={colors.buttonPrimary} />
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </Animated.View>
-
-        {/* Gain/Loss Cards */}
-        <View style={[styles.gainLossContainer, { backgroundColor: colors.cardBackground }]}>
-          <Animated.View 
-            style={[
-              styles.gainCard,
-              {
-                opacity: animatedValues.gainCard,
-                transform: [{
-                  translateX: animatedValues.gainCard.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-50, 0],
-                  })
-                }]
-              }
-            ]}
-          >
-            <LinearGradient
-              colors={isDark ? [colors.cardBackground, colors.cardBackground] : ['#E8F5E8', '#F1F8E9']}
-              style={styles.cardGradient}
-            >
-              <Ionicons name="trending-up" size={24} color={theme.colors.stock.gain} style={styles.cardIcon} />
-              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>Total Gain</Text>
-              <AnimatedNumber value={portfolio.gainAmount || 234.11} />
-            </LinearGradient>
-          </Animated.View>
-
-          <Animated.View 
-            style={[
-              styles.lossCard,
-              {
-                opacity: animatedValues.lossCard,
-                transform: [{
-                  translateX: animatedValues.lossCard.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [50, 0],
-                  })
-                }]
-              }
-            ]}
-          >
-            <LinearGradient
-              colors={isDark ? [colors.cardBackground, colors.cardBackground] : ['#FFEBEE', '#FFCDD2']}
-              style={styles.cardGradient}
-            >
-              <Ionicons name="trending-down" size={24} color={theme.colors.stock.loss} style={styles.cardIcon} />
-              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>Total Loss</Text>
-              <AnimatedNumber value={portfolio.lossAmount || 34.11} />
-            </LinearGradient>
-          </Animated.View>
         </View>
 
-        {/* Portfolio Chart */}
-        <Animated.View 
-          style={[
-            styles.chartContainer,
-            { backgroundColor: colors.cardBackground },
-            {
-              opacity: animatedValues.chart,
-              transform: [{
-                scale: animatedValues.chart.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.9, 1],
-                })
-              }]
-            }
-          ]}
-        >
-          <View style={styles.chartHeader}>
-            <Text style={[styles.chartTitle, { color: colors.textPrimary }]}>Performance</Text>
-            <View style={[styles.chartPeriod, { backgroundColor: colors.buttonPrimary }]}>
-              <Text style={styles.periodText}>7D</Text>
+        {/* Quick Stats */}
+        <View style={styles.quickStatsContainer}>
+          <View style={[styles.statCard, { backgroundColor: isDark ? '#374151' : '#F5F5F5' }]}>
+            <Ionicons name="trending-up" size={20} color={theme.colors.stock.gain} style={styles.statIcon} />
+            <View style={styles.statTextContainer}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Gain</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
+                ${(portfolio.gainAmount || 234.11).toFixed(2)}
+              </Text>
             </View>
           </View>
           
-          <View style={[styles.chartWrapper, { backgroundColor: colors.cardBackground }]}>
+          <View style={[styles.statCard, { backgroundColor: isDark ? '#374151' : '#F5F5F5' }]}>
+            <Ionicons name="trending-down" size={20} color={theme.colors.stock.loss} style={styles.statIcon} />
+            <View style={styles.statTextContainer}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Loss</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
+                ${(portfolio.lossAmount || 34.11).toFixed(2)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Performance Chart */}
+        <View style={styles.chartContainer}>
+          <SectionHeader 
+            title="Performance" 
+            showIndicator={true}
+            style={[styles.chartHeader, styles.performanceHeader]}
+          />
+          
+          <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
-              width={screenWidth - 64}
-              height={200}
+              width={screenWidth - 32}
+              height={180}
               chartConfig={chartConfig}
               bezier
               style={styles.chart}
@@ -551,39 +419,26 @@ const PortfolioScreen = ({ navigation }) => {
               withHorizontalLabels={true}
               segments={4}
               fromZero={false}
-              withDots={true}
+              withDots={false}
             />
           </View>
-        </Animated.View>
+        </View>
 
-        {/* Modern Stocks Section */}
-        <Animated.View 
-          style={[
-            styles.stocksSection,
-            { backgroundColor: colors.cardBackground },
-            {
-              opacity: animatedValues.stocks,
-              transform: [{
-                translateY: animatedValues.stocks.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                })
-              }]
-            }
-          ]}
-        >
-          <View style={styles.stocksHeader}>
-            <Text style={[styles.stocksTitle, { color: colors.textPrimary }]}>Holdings</Text>
-            <TouchableOpacity style={styles.viewAllButton}>
-              <Text style={[styles.viewAllText, { color: colors.buttonPrimary }]}>View All</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.buttonPrimary} />
-            </TouchableOpacity>
-          </View>
+        {/* Holdings Section */}
+        <SectionHeader 
+          title="Holdings" 
+          actionText="View All"
+          onActionPress={() => navigation.navigate('Portfolio')}
+          showIndicator={true}
+          style={styles.sectionHeader}
+        />
+        
+        <View style={styles.stocksList}>
           
           {modernStocks.map((stock, index) => (
             <TouchableOpacity 
               key={stock.id} 
-              style={[styles.modernStockCard, { backgroundColor: 'transparent' }]} 
+              style={styles.stockCard} 
               onPress={() => handleStockPress(stock)}
               activeOpacity={0.7}
             >
@@ -591,11 +446,11 @@ const PortfolioScreen = ({ navigation }) => {
                 <CompanyIcon ticker={stock.ticker} size={48} />
                 <View style={styles.stockInfo}>
                   <Text style={[styles.stockTicker, { color: colors.textPrimary }]}>{stock.ticker}</Text>
-                  <Text style={[styles.stockName, { color: colors.textSecondary }]}>{stock.companyName}</Text>
+                  <Text style={[styles.stockName, { color: colors.textSecondary }]} numberOfLines={1}>{stock.companyName}</Text>
                 </View>
               </View>
               
-              <View style={styles.stockCenter}>
+              <View style={styles.stockChart}>
                 <MiniChart 
                   data={stock.sparklineData} 
                   isPositive={stock.changePercent > 0}
@@ -610,17 +465,17 @@ const PortfolioScreen = ({ navigation }) => {
                   styles.changeContainer,
                   { backgroundColor: stock.changePercent > 0 ? theme.colors.stock.gainLight : theme.colors.stock.lossLight }
                 ]}>
-            <Text style={[
+                  <Text style={[
                     styles.stockChange,
                     { color: stock.changePercent > 0 ? theme.colors.stock.gain : theme.colors.stock.loss }
-            ]}>
+                  ]}>
                     {stock.changePercent > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-            </Text>
-          </View>
-        </View>
+                  </Text>
+                </View>
+              </View>
             </TouchableOpacity>
           ))}
-        </Animated.View>
+        </View>
     </Screen>
   );
 };
@@ -629,15 +484,16 @@ const styles = StyleSheet.create({
   container: {
     // backgroundColor is now dynamic from theme
   },
-  scrollView: {
-    flex: 1,
+  portfolioHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
-  timeIndicator: {
+  liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    // backgroundColor is now dynamic from theme
+    marginBottom: 12,
   },
   liveDot: {
     width: 6,
@@ -653,12 +509,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
-  headerContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 20,
-    // backgroundColor is now dynamic from theme
-  },
   portfolioLabel: {
     fontSize: 13,
     fontWeight: '400',
@@ -673,12 +523,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   portfolioValue: {
-    fontSize: 42,
-    fontWeight: '300',
+    fontSize: 32,
+    fontWeight: '700',
     // color is now dynamic from theme
-    letterSpacing: -2,
-    lineHeight: 48,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-thin',
+    letterSpacing: -0.5,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   percentageContainer: {
     flexDirection: 'row',
@@ -699,155 +548,67 @@ const styles = StyleSheet.create({
   infoIcon: {
     padding: 4,
   },
-  gainLossContainer: {
+  quickStatsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    gap: 12,
-    // backgroundColor is now dynamic from theme
+    justifyContent: 'space-around',
   },
-  gainCard: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  lossCard: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  cardGradient: {
-    padding: 20,
+  statCard: {
+    flexDirection: 'row',
     alignItems: 'flex-start',
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    marginHorizontal: 4,
   },
-  cardIcon: {
-    marginBottom: 12,
+  statIcon: {
+    marginRight: 12,
+    marginTop: 2,
   },
-  cardLabel: {
-    fontSize: 12,
-    // color is now dynamic from theme
-    marginBottom: 8,
+  statTextContainer: {
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 14,
     fontWeight: '400',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    marginBottom: 4,
   },
-  gainAmount: {
-    fontSize: 22,
-    fontWeight: '300',
-    color: theme.colors.stock.gain,
-    letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
   },
-  lossAmount: {
-    fontSize: 22,
-    fontWeight: '300',
-    color: theme.colors.stock.loss,
-    letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
-  },
+
   chartContainer: {
-    // backgroundColor is now dynamic from theme
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    marginTop: 12,
+    marginTop: 16,
   },
   chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingTop: 16,
+    marginTop: 0,
+    paddingHorizontal: 0,
   },
-  chartTitle: {
-    fontSize: 20,
-    fontWeight: '300',
-    // color is now dynamic from theme
-    letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
-  },
-  chartPeriod: {
-    // backgroundColor is now dynamic from theme
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  periodText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
+  performanceHeader: {
+    paddingLeft: 20,
   },
   chartWrapper: {
-    // backgroundColor will be dynamic based on theme
-    borderRadius: 16,
-    overflow: 'hidden',
     alignItems: 'center',
     paddingVertical: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   chart: {
     borderRadius: 16,
   },
-  stocksSection: {
-    // backgroundColor is now dynamic from theme
-    marginTop: 12,
+  sectionHeader: {
+    marginTop: 8,
+  },
+  stocksList: {
     paddingHorizontal: 16,
-    paddingTop: 20,
     paddingBottom: 20,
   },
-  stocksHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  stocksTitle: {
-    fontSize: 24,
-    fontWeight: '300',
-    // color is now dynamic from theme
-    letterSpacing: -0.8,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
-  },
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '400',
-    // color is now dynamic from theme
-    marginRight: 4,
-    letterSpacing: 0.3,
-  },
-  modernStockCard: {
+  stockCard: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 12,
-    // backgroundColor is now dynamic from theme
-    borderRadius: 16,
-    marginBottom: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   stockLeft: {
     flexDirection: 'row',
@@ -876,45 +637,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stockTicker: {
-    fontSize: 17,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     // color is now dynamic from theme
-    marginBottom: 3,
-    letterSpacing: 0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
+    marginBottom: 2,
   },
   stockName: {
     fontSize: 12,
     // color is now dynamic from theme
-    fontWeight: '300',
-    letterSpacing: 0.2,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-light',
+    fontWeight: '400',
   },
-  stockCenter: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 20,
+  stockChart: {
+    marginHorizontal: 16,
+    justifyContent: 'center',
   },
-  modernSparkline: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 25,
-    gap: 2,
-  },
-  sparklineBar: {
-    width: 3,
-    borderRadius: 1.5,
-  },
+
   stockRight: {
     alignItems: 'flex-end',
   },
   stockPrice: {
-    fontSize: 17,
-    fontWeight: '400',
+    fontSize: 16,
+    fontWeight: '600',
     // color is now dynamic from theme
     marginBottom: 4,
-    letterSpacing: -0.3,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   changeContainer: {
     paddingHorizontal: 8,
@@ -926,37 +671,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.2,
   },
-  skeletonContainer: {
-    padding: 16,
-  },
-  skeletonHeader: {
-    height: 20,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 4,
-    marginBottom: 8,
-    width: '40%',
-  },
-  skeletonValue: {
-    height: 40,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  skeletonCards: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  skeletonCard: {
+  loadingContainer: {
     flex: 1,
-    height: 80,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
   },
-  skeletonChart: {
-    height: 200,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 16,
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 16,
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
