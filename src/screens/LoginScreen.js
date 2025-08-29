@@ -354,7 +354,8 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginTop: 50,
+    marginBottom: 20,
   },
   divider: {
     flex: 1,
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   forgotPasswordText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500'
     // color is now dynamic from theme
   },
