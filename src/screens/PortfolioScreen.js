@@ -186,7 +186,7 @@ const PortfolioScreen = ({ navigation }) => {
       // Haptic feedback not available on this device
     }
     
-    navigation.navigate('ItemDetails', { stock });
+    navigation.navigate('StockDetails', { stock });
   }, [navigation]);
 
 
