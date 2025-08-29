@@ -326,39 +326,7 @@ const HomeScreen = ({ navigation }) => {
             lossAmount={portfolio.lossAmount}
             onPress={handleViewPortfolio}
           />
-          
-          {/* Quick Actions */}
-          <View style={styles.quickActionsContainer}>
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('Transactions')}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
-                <Ionicons name="swap-horizontal" size={24} color={colors.buttonPrimary} />
-              </View>
-              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Trade</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('Market')}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
-                <Ionicons name="trending-up" size={24} color={colors.buttonPrimary} />
-              </View>
-              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Market</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('Portfolio')}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.buttonPrimary + '20' }]}>
-                <Ionicons name="pie-chart" size={24} color={colors.buttonPrimary} />
-              </View>
-              <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>Portfolio</Text>
-            </TouchableOpacity>
-          </View>
+
         </View>
         
         {/* Trending Stocks Section */}
@@ -504,30 +472,7 @@ const styles = StyleSheet.create({
     // backgroundColor is now dynamic from theme
     paddingBottom: 16,
   },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    justifyContent: 'space-around',
-  },
-  quickActionButton: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8
-    // backgroundColor is now dynamic from theme
-  },
-  quickActionText: {
-    fontSize: 12,
-    fontWeight: '600'
-    // color is now dynamic from theme
-  },
+
   sectionHeader: {
     marginTop: 8,
   },
